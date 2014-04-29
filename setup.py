@@ -41,5 +41,10 @@ setup(
         test=['coverage'],),
     install_requires=[
         'setuptools'
-    ]
+    ],
+    entry_points={
+        'console_scripts': [
+            'migrant = migrant.cli:main',
+        ]
+    }
 )
