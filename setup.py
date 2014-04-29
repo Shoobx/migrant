@@ -1,6 +1,6 @@
 ###############################################################################
 #
-# Copyright 2013 by Shoobx, Inc.
+# Copyright 2014 by Shoobx, Inc.
 #
 ###############################################################################
 import os
@@ -38,7 +38,7 @@ setup(
     include_package_data=True,
     zip_safe=False,
     extras_require=dict(
-        test=['coverage'],),
+        test=['coverage', 'mock'],),
     install_requires=[
         'setuptools'
     ],
