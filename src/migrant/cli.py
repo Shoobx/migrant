@@ -3,11 +3,12 @@
 # Copyright 2014 by Shoobx, Inc.
 #
 ###############################################################################
-
+import os
 import argparse
 import logging
 from ConfigParser import SafeConfigParser
 
+from migrant import exceptions
 from migrant.engine import MigrantEngine
 from migrant.backend import create_backend
 from migrant.repository import create_repo
@@ -69,6 +70,8 @@ upgrade_parser.add_argument("-r", "--revision",
 
 
 def load_config():
+    if not os.path.exists("migrant.ini"):
+        raise exceptions.ConfigurationError("migrant.ini is missing")
     cfg = SafeConfigParser()
     with open('migrant.ini') as cfgfp:
         cfg.readfp(cfgfp)
@@ -88,7 +91,7 @@ def dispatch(args, cfg):
 
 
 def main():
-    cfg = load_config()
     args = parser.parse_args()
+    cfg = load_config()
     setup_logging(args, cfg)
     dispatch(args, cfg)
