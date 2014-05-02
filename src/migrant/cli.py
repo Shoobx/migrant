@@ -60,7 +60,13 @@ def get_db_config(cfg, name):
     return dict(cfg.items(name))
 
 
+def setup_logging(args, cfg):
+    logging.basicConfig(level=logging.INFO)
+
+
 def main():
     cfg = load_config()
+
     args = parser.parse_args()
+    setup_logging(args, cfg)
     args.cmd(args, cfg)

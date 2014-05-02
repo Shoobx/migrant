@@ -4,9 +4,12 @@
 #
 ###############################################################################
 
+import logging
 import pkg_resources
 
 from migrant import exceptions
+
+log = logging.getLogger(__name__)
 
 
 class MigrantBackend(object):
@@ -25,6 +28,23 @@ class MigrantBackend(object):
         """Generate connections to process
         """
         raise NotImplementedError
+
+
+class NoopBackend(MigrantBackend):
+    def __init__(self, cfg):
+        self.cfg = cfg
+
+    def list_migrations(self, db):
+        return []
+
+    def push_migration(self, db, migration):
+        log.info("NOOP: pushing migration %s" % migration)
+
+    def pop_migration(self, db, migration):
+        log.info("NOOP: popping migration %s" % migration)
+
+    def generate_connections(self):
+        yield "NOOP"
 
 
 def create_backend(cfg):

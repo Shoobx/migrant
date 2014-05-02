@@ -45,6 +45,9 @@ setup(
     entry_points={
         'console_scripts': [
             'migrant = migrant.cli:main',
+        ],
+        'migrant': [
+            'noop = migrant.backend:NoopBackend'
         ]
     }
 )
