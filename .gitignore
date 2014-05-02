@@ -4,6 +4,11 @@ ve/
 parts/
 .installed.cfg
 bootstrap.py
+.coverage
+coverage
+htmlcov
 
 *.pyc
 src/*.egg-info
+
+migrant.ini
