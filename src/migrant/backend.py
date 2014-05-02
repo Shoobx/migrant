@@ -35,7 +35,7 @@ class NoopBackend(MigrantBackend):
         self.cfg = cfg
 
     def list_migrations(self, db):
-        return []
+        return ["INITIAL"]
 
     def push_migration(self, db, migration):
         log.info("NOOP: pushing migration %s" % migration)
