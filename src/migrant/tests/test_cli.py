@@ -83,7 +83,8 @@ class UpgradeTest(unittest.TestCase):
         self.db0 = TestDb("db0")
         self.backend = TestBackend([self.db0])
 
-        mock.patch.dict(backend.BACKENDS, test=lambda cfg: self.backend).start()
+        mock.patch.object(backend, "get_backend",
+                          return_value=lambda cfg: self.backend).start()
 
         self.cfg = SafeConfigParser()
         self.cfg.readfp(io.BytesIO(INTEGRATION_CONFIG), "INTEGRATION_CONFIG")

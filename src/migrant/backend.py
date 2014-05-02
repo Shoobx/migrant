@@ -4,6 +4,8 @@
 #
 ###############################################################################
 
+import pkg_resources
+
 from migrant import exceptions
 
 
@@ -25,15 +27,18 @@ class MigrantBackend(object):
         raise NotImplementedError
 
 
-BACKENDS = {
-}
-
-
 def create_backend(cfg):
     name = cfg['backend']
 
-    if name not in BACKENDS:
-        raise exceptions.ConfigurationError("Unknown backend: %s" % name)
-
-    factory = BACKENDS[name]
+    factory = get_backend(name)
     return factory(cfg)
+
+
+def get_backend(name):
+    backends = list(pkg_resources.iter_entry_points('migrant', name))
+    if not backends:
+        raise exceptions.BackendNotRegistered(name)
+    if len(backends) > 1:
+        raise exceptions.BackendNameConflict(backends)
+    pcls = backends[0].load()
+    return pcls

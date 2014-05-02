@@ -11,3 +11,11 @@ class ConfigurationError(RuntimeError):
 
 class ScriptNotFoundError(RuntimeError):
     pass
+
+
+class BackendNotRegistered(RuntimeError):
+    pass
+
+
+class BackendNameConflict(RuntimeError):
+    pass
