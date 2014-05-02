@@ -111,9 +111,17 @@ class Repository(object):
 
         scripts = []
         for scriptname in contents:
+            scriptname = scriptname.strip()
+            if scriptname.startswith("#"):
+                continue
+
+            if not scriptname:
+                continue
+
             if not self.is_valid_scriptname(scriptname):
                 log.warning("Ignoring unrecognized script name: %s" %
                             scriptname)
+                continue
 
             scripts.append(self.fname_to_revid(scriptname))
 
