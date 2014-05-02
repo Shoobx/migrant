@@ -95,18 +95,18 @@ class UpgradeTest(unittest.TestCase):
         mock.patch.stopall()
 
     def test_no_scripts(self):
-        args = cli.parser.parse_args(["upgrade", "virgin"])
+        args = cli.parser.parse_args(["virgin", "upgrade"])
         cli.dispatch(args, self.cfg)
         self.assertEqual(self.db0.migrations, ['INITIAL'])
 
     def test_initial_upgrade(self):
-        args = cli.parser.parse_args(["upgrade", "test"])
+        args = cli.parser.parse_args(["test", "upgrade"])
         cli.dispatch(args, self.cfg)
 
         self.assertEqual(self.db0.migrations, ['cccc'])
 
     def test_subsequent_emtpy_upgrade(self):
-        args = cli.parser.parse_args(["upgrade", "test"])
+        args = cli.parser.parse_args(["test", "upgrade"])
         cli.dispatch(args, self.cfg)
         # this should be a noop
         cli.dispatch(args, self.cfg)
@@ -116,7 +116,7 @@ class UpgradeTest(unittest.TestCase):
     def test_upgrade_latest(self):
         self.db0.migrations = ["aaaa"]
 
-        args = cli.parser.parse_args(["upgrade", "test"])
+        args = cli.parser.parse_args(["test", "upgrade"])
         cli.dispatch(args, self.cfg)
 
         self.assertEqual(self.db0.migrations, ['aaaa', 'bbbb', 'cccc'])
@@ -125,7 +125,7 @@ class UpgradeTest(unittest.TestCase):
     def test_upgrade_particular(self):
         self.db0.migrations = ["aaaa"]
 
-        args = cli.parser.parse_args(["upgrade", "--revision", "bbbb", "test"])
+        args = cli.parser.parse_args(["test", "upgrade", "--revision", "bbbb"])
         cli.dispatch(args, self.cfg)
 
         self.assertEqual(self.db0.migrations, ['aaaa', 'bbbb'])
@@ -135,7 +135,7 @@ class UpgradeTest(unittest.TestCase):
         self.db0.migrations = ["INITIAL", "aaaa", "bbbb", "cccc"]
         self.db0.data = {'hello': 'world', 'value': 'c'}
 
-        args = cli.parser.parse_args(["upgrade", "--revision", "aaaa", "test"])
+        args = cli.parser.parse_args(["test", "upgrade", "--revision", "aaaa"])
         cli.dispatch(args, self.cfg)
 
         self.assertEqual(self.db0.migrations, ['INITIAL', 'aaaa'])
@@ -145,7 +145,7 @@ class UpgradeTest(unittest.TestCase):
         self.db0.migrations = ["INITIAL", "aaaa", "bbbb", "cccc"]
         self.db0.data = {'hello': 'world', 'value': 'c'}
 
-        args = cli.parser.parse_args(["upgrade", "test",
+        args = cli.parser.parse_args(["test", "upgrade",
                                      "--revision", "INITIAL"])
         cli.dispatch(args, self.cfg)
 
@@ -156,7 +156,7 @@ class UpgradeTest(unittest.TestCase):
         self.db0.migrations = ["aaaa"]
         self.db0.data = {"value": "a"}
 
-        args = cli.parser.parse_args(["upgrade", "--dry-run", "test"])
+        args = cli.parser.parse_args(["test", "upgrade", "--dry-run"])
         cli.dispatch(args, self.cfg)
 
         self.assertEqual(self.db0.migrations, ['aaaa'])
@@ -179,7 +179,7 @@ class InitTest(unittest.TestCase):
 
         cfg = SafeConfigParser()
         cfg.readfp(io.BytesIO(SAMPLE_CONFIG), "SAMPLE_CONFIG")
-        args = cli.parser.parse_args(["init", "newdb"])
+        args = cli.parser.parse_args(["newdb", "init"])
         cli.dispatch(args, cfg)
 
         self.assertTrue(os.path.exists(os.path.join(self.dir, "repo")))
@@ -198,7 +198,7 @@ class InitTest(unittest.TestCase):
 
         cfg = SafeConfigParser()
         cfg.readfp(io.BytesIO(SAMPLE_CONFIG), "SAMPLE_CONFIG")
-        args = cli.parser.parse_args(["init", "newdb"])
+        args = cli.parser.parse_args(["newdb", "init"])
         cli.dispatch(args, cfg)
 
         self.assertTrue(os.path.exists(os.path.join(self.dir, "repo")))
@@ -226,17 +226,17 @@ class NewTest(unittest.TestCase):
 
     def initialize(self):
         # Initialize repository
-        args = cli.parser.parse_args(["init", "newdb"])
+        args = cli.parser.parse_args(["newdb", "init"])
         cli.dispatch(args, self.cfg)
 
     def test_new_uninitialized(self):
-        args = cli.parser.parse_args(["new", "newdb", "First script"])
+        args = cli.parser.parse_args(["newdb", "new", "First script"])
         with self.assertRaises(exceptions.RepositoryNotFound):
             cli.dispatch(args, self.cfg)
 
     def test_new_initialized(self):
         self.initialize()
-        args = cli.parser.parse_args(["new", "newdb", "First script"])
+        args = cli.parser.parse_args(["newdb", "new", "First script"])
         cli.dispatch(args, self.cfg)
 
         with open(self.slistfname) as slist:
@@ -246,10 +246,10 @@ class NewTest(unittest.TestCase):
 
     def test_new_subsequent(self):
         self.initialize()
-        args = cli.parser.parse_args(["new", "newdb", "First script"])
+        args = cli.parser.parse_args(["newdb", "new", "First script"])
         cli.dispatch(args, self.cfg)
 
-        args = cli.parser.parse_args(["new", "newdb", "Second script"])
+        args = cli.parser.parse_args(["newdb", "new", "Second script"])
         cli.dispatch(args, self.cfg)
 
         with open(self.slistfname) as slist:
@@ -260,7 +260,7 @@ class NewTest(unittest.TestCase):
 
     def test_new_duplicate(self):
         self.initialize()
-        args = cli.parser.parse_args(["new", "newdb", "First script"])
+        args = cli.parser.parse_args(["newdb", "new", "First script"])
         cli.dispatch(args, self.cfg)
 
         with self.assertRaises(exceptions.ScriptAlreadyExists):

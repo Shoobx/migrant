@@ -39,6 +39,7 @@ def cmd_upgrade(args, cfg):
 
 parser = argparse.ArgumentParser(
     description='Database Migration Engine')
+parser.add_argument("database", help="Database name")
 
 commands = parser.add_subparsers()
 
@@ -46,14 +47,14 @@ commands = parser.add_subparsers()
 init_parser = commands.add_parser(
     "init", help="Initialize migration script repository")
 init_parser.set_defaults(cmd=cmd_init)
-init_parser.add_argument("database", help="Database name")
+# init_parser.add_argument("database", help="Database name")
 
 # NEW options
 new_parser = commands.add_parser(
     "new",
     help="Create new migration script")
 new_parser.set_defaults(cmd=cmd_new)
-new_parser.add_argument("database", help="Database name")
+# new_parser.add_argument("database", help="Database name")
 new_parser.add_argument("title", help="Migration script title")
 
 # UPGRADE options
@@ -64,7 +65,7 @@ upgrade_parser.set_defaults(cmd=cmd_upgrade)
 upgrade_parser.add_argument("-n", "--dry-run", action="store_true",
                             help=("dry run: do not execute scripts, only "
                                   "show what is going to be executed."))
-upgrade_parser.add_argument("database", help="Database name to upgrade")
+# upgrade_parser.add_argument("database", help="Database name to upgrade")
 upgrade_parser.add_argument("-r", "--revision",
                             help=("Revision to upgrade to. If not specified, "
                                   "latest revision will be used"))
