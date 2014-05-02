@@ -4,6 +4,7 @@
 #
 ###############################################################################
 import os
+import imp
 import logging
 
 log = logging.getLogger(__name__)
@@ -13,16 +14,20 @@ from migrant import exceptions
 
 class Script(object):
     rev_id = None
-    title = None
+    name = None
 
     def __init__(self, filename):
-        pass
+        assert filename.endswith(".py")
+        self.name = os.path.basename(filename)[:-3]
+        self.module = imp.load_source(self.name, filename)
 
-    def up(self, engine):
-        pass
+    def up(self, db):
+        log.info("Upgrading to %s" % self.name)
+        self.module.up(db)
 
-    def down(self, engine):
-        pass
+    def down(self, db):
+        log.info("Reverting %s" % self.name)
+        self.module.down(db)
 
 
 class Repository(object):
@@ -47,8 +52,19 @@ class Repository(object):
 
         return scripts
 
-    def load_script(scriptid):
-        pass
+    def load_script(self, scriptid):
+        # Find script with given id
+        fname = None
+        for fname in os.listdir(self.directory):
+            if not fname.endswith(".py"):
+                continue
+
+            if fname.startswith("%s_" % scriptid):
+                break
+        else:
+            raise exceptions.ScriptNotFoundError(scriptid)
+
+        return Script(os.path.join(self.directory, fname))
 
     def is_valid_scriptname(self, fname):
         return "_" in fname and fname.endswith(".py")
@@ -125,5 +141,12 @@ class MigrantEngine(object):
         return [('-', rid) for rid in toremove] + [('+', rid) for rid in toadd]
 
     def execute_actions(self, db, actions):
-        for a in actions:
-            print "DOING", a
+        for action, revid in actions:
+            script = self.repository.load_script(revid)
+            if action == "+":
+                script.up(db)
+                self.backend.push_migration(db, revid)
+            else:
+                assert action == "-"
+                script.down(db)
+                self.backend.pop_migration(db, revid)

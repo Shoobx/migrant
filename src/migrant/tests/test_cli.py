@@ -101,11 +101,11 @@ class UpgradeTest(unittest.TestCase):
 
         self.assertEqual(self.db0.migrations, ['cccc'])
 
-    def test_upgrade(self):
+    def test_upgrade_latest(self):
         self.db0.migrations = ["aaaa"]
 
         args = mock.Mock(database='test')
         cli.cmd_upgrade(args, self.cfg)
 
         self.assertEqual(self.db0.migrations, ['aaaa', 'bbbb', 'cccc'])
-        self.assertEqual(self.db0.data, {"x": "x"})
+        self.assertEqual(self.db0.data, {'hello': 'world', 'value': 'c'})
