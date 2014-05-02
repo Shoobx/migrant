@@ -31,8 +31,13 @@ INTEGRATION_CONFIG = """
 [test]
 backend = test
 repository = %s
-dbs = main
 """ % os.path.join(HERE, 'scripts')
+
+INTEGRATION_CONFIG += """
+[virgin]
+backend = test
+repository = %s
+""" % os.path.join(HERE, 'noscripts')
 
 
 class TestDb(object):
@@ -86,6 +91,11 @@ class UpgradeTest(unittest.TestCase):
     def tearDown(self):
         mock.patch.stopall()
 
+    def test_no_scripts(self):
+        args = cli.parser.parse_args(["upgrade", "virgin"])
+        cli.cmd_upgrade(args, self.cfg)
+        self.assertEqual(self.db0.migrations, ['INITIAL'])
+
     def test_initial_upgrade(self):
         args = cli.parser.parse_args(["upgrade", "test"])
         cli.cmd_upgrade(args, self.cfg)
@@ -119,14 +129,25 @@ class UpgradeTest(unittest.TestCase):
         self.assertEqual(self.db0.data, {'value': 'b'})
 
     def test_downgrade(self):
-        self.db0.migrations = ["aaaa", "bbbb", "cccc"]
+        self.db0.migrations = ["INITIAL", "aaaa", "bbbb", "cccc"]
         self.db0.data = {'hello': 'world', 'value': 'c'}
 
         args = cli.parser.parse_args(["upgrade", "--revision", "aaaa", "test"])
         cli.cmd_upgrade(args, self.cfg)
 
-        self.assertEqual(self.db0.migrations, ['aaaa'])
+        self.assertEqual(self.db0.migrations, ['INITIAL', 'aaaa'])
         self.assertEqual(self.db0.data, {'value': 'a'})
+
+    def test_downgrade_to_initial(self):
+        self.db0.migrations = ["INITIAL", "aaaa", "bbbb", "cccc"]
+        self.db0.data = {'hello': 'world', 'value': 'c'}
+
+        args = cli.parser.parse_args(["upgrade", "test",
+                                     "--revision", "INITIAL"])
+        cli.cmd_upgrade(args, self.cfg)
+
+        self.assertEqual(self.db0.migrations, ['INITIAL'])
+        self.assertEqual(self.db0.data, {})
 
     def test_dry_run_upgrade(self):
         self.db0.migrations = ["aaaa"]

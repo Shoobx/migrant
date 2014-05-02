@@ -37,6 +37,10 @@ class Repository(object):
         """List scripts in right order
         """
         fname = os.path.join(self.directory, "scripts.lst")
+
+        if not os.path.exists(fname):
+            return []
+
         with open(fname, 'r') as f:
             contents = f.readlines()
 
@@ -79,7 +83,7 @@ class MigrantEngine(object):
     def __init__(self, backend, repository, config, dry_run=False):
         self.backend = backend
         self.repository = repository
-        self.script_ids = repository.list_script_ids()
+        self.script_ids = ["INITIAL"] + repository.list_script_ids()
         self.dry_run = dry_run
         self.config = config
 
