@@ -8,8 +8,9 @@ import argparse
 import logging
 from ConfigParser import SafeConfigParser
 
-from migrant.engine import MigrantEngine, create_repo
+from migrant.engine import MigrantEngine
 from migrant.backend import create_backend
+from migrant.repository import create_repo
 
 log = logging.getLogger(__name__)
 
