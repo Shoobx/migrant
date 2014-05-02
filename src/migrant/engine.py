@@ -21,6 +21,7 @@ class MigrantEngine(object):
     def update(self, target_id=None):
         target_id = self.pick_rev_id(target_id)
         for db in self.backend.generate_connections():
+            log.info("Starting migration for %s" % db)
             migrations = self.backend.list_migrations(db)
 
             if not migrations:
@@ -30,6 +31,7 @@ class MigrantEngine(object):
 
             actions = self.calc_actions(db, target_id)
             self.execute_actions(db, actions)
+            log.info("Migration completed for %s" % db)
 
     def initialize_db(self, db, initial_revid):
         log.info("Initializing migrations for %s. Assuming database is at %s" %
