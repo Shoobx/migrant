@@ -14,6 +14,12 @@ from migrant.backend import create_backend
 log = logging.getLogger(__name__)
 
 
+def cmd_init(args, cfg):
+    cfg = get_db_config(cfg, args.database)
+    repo = create_repo(cfg)
+    repo.init()
+
+
 def cmd_new(args, cfg):
     print "NEW", args
 
@@ -31,11 +37,20 @@ parser = argparse.ArgumentParser(
 
 commands = parser.add_subparsers()
 
+# INIT options
+init_parser = commands.add_parser(
+    "init", help="Initialize migration script repository")
+init_parser.set_defaults(cmd=cmd_init)
+init_parser.add_argument("database", help="Database name")
+
+# NEW options
 new_parser = commands.add_parser(
     "new",
     help="Create new migration script")
 new_parser.set_defaults(cmd=cmd_new)
 
+
+# UPGRADE options
 upgrade_parser = commands.add_parser(
     "upgrade",
     help="Perform upgrade")
@@ -64,9 +79,12 @@ def setup_logging(args, cfg):
     logging.basicConfig(level=logging.INFO)
 
 
+def dispatch(args, cfg):
+    args.cmd(args, cfg)
+
+
 def main():
     cfg = load_config()
-
     args = parser.parse_args()
     setup_logging(args, cfg)
-    args.cmd(args, cfg)
+    dispatch(args, cfg)

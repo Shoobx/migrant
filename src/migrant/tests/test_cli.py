@@ -6,6 +6,9 @@
 import os
 import io
 import unittest
+import tempfile
+import shutil
+import textwrap
 from ConfigParser import SafeConfigParser
 
 import mock
@@ -94,20 +97,20 @@ class UpgradeTest(unittest.TestCase):
 
     def test_no_scripts(self):
         args = cli.parser.parse_args(["upgrade", "virgin"])
-        cli.cmd_upgrade(args, self.cfg)
+        cli.dispatch(args, self.cfg)
         self.assertEqual(self.db0.migrations, ['INITIAL'])
 
     def test_initial_upgrade(self):
         args = cli.parser.parse_args(["upgrade", "test"])
-        cli.cmd_upgrade(args, self.cfg)
+        cli.dispatch(args, self.cfg)
 
         self.assertEqual(self.db0.migrations, ['cccc'])
 
     def test_subsequent_emtpy_upgrade(self):
         args = cli.parser.parse_args(["upgrade", "test"])
-        cli.cmd_upgrade(args, self.cfg)
+        cli.dispatch(args, self.cfg)
         # this should be a noop
-        cli.cmd_upgrade(args, self.cfg)
+        cli.dispatch(args, self.cfg)
 
         self.assertEqual(self.db0.migrations, ['cccc'])
 
@@ -115,7 +118,7 @@ class UpgradeTest(unittest.TestCase):
         self.db0.migrations = ["aaaa"]
 
         args = cli.parser.parse_args(["upgrade", "test"])
-        cli.cmd_upgrade(args, self.cfg)
+        cli.dispatch(args, self.cfg)
 
         self.assertEqual(self.db0.migrations, ['aaaa', 'bbbb', 'cccc'])
         self.assertEqual(self.db0.data, {'hello': 'world', 'value': 'c'})
@@ -124,7 +127,7 @@ class UpgradeTest(unittest.TestCase):
         self.db0.migrations = ["aaaa"]
 
         args = cli.parser.parse_args(["upgrade", "--revision", "bbbb", "test"])
-        cli.cmd_upgrade(args, self.cfg)
+        cli.dispatch(args, self.cfg)
 
         self.assertEqual(self.db0.migrations, ['aaaa', 'bbbb'])
         self.assertEqual(self.db0.data, {'value': 'b'})
@@ -134,7 +137,7 @@ class UpgradeTest(unittest.TestCase):
         self.db0.data = {'hello': 'world', 'value': 'c'}
 
         args = cli.parser.parse_args(["upgrade", "--revision", "aaaa", "test"])
-        cli.cmd_upgrade(args, self.cfg)
+        cli.dispatch(args, self.cfg)
 
         self.assertEqual(self.db0.migrations, ['INITIAL', 'aaaa'])
         self.assertEqual(self.db0.data, {'value': 'a'})
@@ -145,7 +148,7 @@ class UpgradeTest(unittest.TestCase):
 
         args = cli.parser.parse_args(["upgrade", "test",
                                      "--revision", "INITIAL"])
-        cli.cmd_upgrade(args, self.cfg)
+        cli.dispatch(args, self.cfg)
 
         self.assertEqual(self.db0.migrations, ['INITIAL'])
         self.assertEqual(self.db0.data, {})
@@ -155,7 +158,49 @@ class UpgradeTest(unittest.TestCase):
         self.db0.data = {"value": "a"}
 
         args = cli.parser.parse_args(["upgrade", "--dry-run", "test"])
-        cli.cmd_upgrade(args, self.cfg)
+        cli.dispatch(args, self.cfg)
 
         self.assertEqual(self.db0.migrations, ['aaaa'])
         self.assertEqual(self.db0.data, {'value': 'a'})
+
+
+class InitTest(unittest.TestCase):
+    def setUp(self):
+        self.dir = tempfile.mkdtemp("migrant")
+
+    def tearDown(self):
+        shutil.rmtree(self.dir)
+
+    def test_init(self):
+        SAMPLE_CONFIG = textwrap.dedent("""
+        [newdb]
+        backend = noop
+        repository = %s/repo
+        """ % self.dir)
+
+        cfg = SafeConfigParser()
+        cfg.readfp(io.BytesIO(SAMPLE_CONFIG), "SAMPLE_CONFIG")
+        args = cli.parser.parse_args(["init", "newdb"])
+        cli.dispatch(args, cfg)
+
+        self.assertTrue(os.path.exists(os.path.join(self.dir, "repo")))
+
+    def test_init_subsequent(self):
+        SAMPLE_CONFIG = textwrap.dedent("""
+        [newdb]
+        backend = noop
+        repository = %s/repo
+        """ % self.dir)
+
+        os.mkdir(os.path.join(self.dir, "repo"))
+        slistfname = os.path.join(self.dir, "repo", "scripts.lst")
+        with open(slistfname, "w") as f:
+            f.write("aaaa_test.py")
+
+        cfg = SafeConfigParser()
+        cfg.readfp(io.BytesIO(SAMPLE_CONFIG), "SAMPLE_CONFIG")
+        args = cli.parser.parse_args(["init", "newdb"])
+        cli.dispatch(args, cfg)
+
+        self.assertTrue(os.path.exists(os.path.join(self.dir, "repo")))
+        self.assertEqual(open(slistfname).read(), "aaaa_test.py")

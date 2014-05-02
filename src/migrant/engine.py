@@ -28,20 +28,36 @@ class Script(object):
         self.module.down(db)
 
 
+INITIAL_SCRIPTLIST = """
+# Order of migration scripts. This file is maintained by migrant
+#
+""".strip()
+
+
 class Repository(object):
 
     def __init__(self, directory):
         self.directory = directory
+        self.scriptlist_fname = os.path.join(self.directory, "scripts.lst")
+
+    def init(self):
+        if not os.path.exists(self.directory):
+            log.info("Creating migrations directory %s" % self.directory)
+            os.makedirs(self.directory)
+
+        if not os.path.exists(self.scriptlist_fname):
+            log.info("Creating initial scripts.lst")
+            with open(self.scriptlist_fname, "w") as f:
+                f.write(INITIAL_SCRIPTLIST)
+                f.write("\n")
 
     def list_script_ids(self):
         """List scripts in right order
         """
-        fname = os.path.join(self.directory, "scripts.lst")
-
-        if not os.path.exists(fname):
+        if not os.path.exists(self.scriptlist_fname):
             return []
 
-        with open(fname, 'r') as f:
+        with open(self.scriptlist_fname, 'r') as f:
             contents = f.readlines()
 
         scripts = []
