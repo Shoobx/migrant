@@ -81,6 +81,9 @@ def load_config():
 
 
 def get_db_config(cfg, name):
+    if not cfg.has_section(name):
+        raise exceptions.ConfigurationError(
+            "No database %s in migrant.ini" % name)
     return dict(cfg.items(name))
 
 
