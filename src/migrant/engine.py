@@ -22,11 +22,9 @@ class Script(object):
         self.module = imp.load_source(self.name, filename)
 
     def up(self, db):
-        log.info("Upgrading to %s" % self.name)
         self.module.up(db)
 
     def down(self, db):
-        log.info("Reverting %s" % self.name)
         self.module.down(db)
 
 
@@ -78,10 +76,11 @@ def create_repo(cfg):
 
 
 class MigrantEngine(object):
-    def __init__(self, backend, repository, config):
+    def __init__(self, backend, repository, config, dry_run=False):
         self.backend = backend
         self.repository = repository
         self.script_ids = repository.list_script_ids()
+        self.dry_run = dry_run
         self.config = config
 
     def update(self, target_id=None):
@@ -144,9 +143,13 @@ class MigrantEngine(object):
         for action, revid in actions:
             script = self.repository.load_script(revid)
             if action == "+":
-                script.up(db)
-                self.backend.push_migration(db, revid)
+                if not self.dry_run:
+                    log.info("Upgrading to %s" % revid)
+                    script.up(db)
+                    self.backend.push_migration(db, revid)
             else:
                 assert action == "-"
-                script.down(db)
-                self.backend.pop_migration(db, revid)
+                log.info("Reverting %s" % revid)
+                if not self.dry_run:
+                    script.down(db)
+                    self.backend.pop_migration(db, revid)

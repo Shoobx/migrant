@@ -127,3 +127,13 @@ class UpgradeTest(unittest.TestCase):
 
         self.assertEqual(self.db0.migrations, ['aaaa'])
         self.assertEqual(self.db0.data, {'value': 'a'})
+
+    def test_dry_run_upgrade(self):
+        self.db0.migrations = ["aaaa"]
+        self.db0.data = {"value": "a"}
+
+        args = cli.parser.parse_args(["upgrade", "--dry-run", "test"])
+        cli.cmd_upgrade(args, self.cfg)
+
+        self.assertEqual(self.db0.migrations, ['aaaa'])
+        self.assertEqual(self.db0.data, {'value': 'a'})

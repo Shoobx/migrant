@@ -22,7 +22,7 @@ def cmd_upgrade(args, cfg):
     cfg = get_db_config(cfg, args.database)
     repo = create_repo(cfg)
     backend = create_backend(cfg)
-    engine = MigrantEngine(backend, repo, cfg)
+    engine = MigrantEngine(backend, repo, cfg, dry_run=args.dry_run)
     engine.update(args.revision)
 
 
@@ -47,6 +47,7 @@ upgrade_parser.add_argument("database", help="Database name to upgrade")
 upgrade_parser.add_argument("-r", "--revision",
                             help=("Revision to upgrade to. If not specified, "
                                   "latest revision will be used"))
+
 
 def load_config():
     cfg = SafeConfigParser()
