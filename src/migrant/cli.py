@@ -23,7 +23,7 @@ def cmd_upgrade(args, cfg):
     repo = create_repo(cfg)
     backend = create_backend(cfg)
     engine = MigrantEngine(backend, repo, cfg)
-    engine.update()
+    engine.update(args.revision)
 
 
 parser = argparse.ArgumentParser(
@@ -44,7 +44,9 @@ upgrade_parser.add_argument("-n", "--dry-run", action="store_true",
                             help=("dry run: do not execute scripts, only "
                                   "show what is going to be executed."))
 upgrade_parser.add_argument("database", help="Database name to upgrade")
-
+upgrade_parser.add_argument("-r", "--revision",
+                            help=("Revision to upgrade to. If not specified, "
+                                  "latest revision will be used"))
 
 def load_config():
     cfg = SafeConfigParser()

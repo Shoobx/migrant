@@ -87,14 +87,13 @@ class UpgradeTest(unittest.TestCase):
         mock.patch.stopall()
 
     def test_initial_upgrade(self):
-        args = mock.Mock(database='test')
+        args = cli.parser.parse_args(["upgrade", "test"])
         cli.cmd_upgrade(args, self.cfg)
 
         self.assertEqual(self.db0.migrations, ['cccc'])
 
     def test_subsequent_emtpy_upgrade(self):
-        args = mock.Mock(database='test')
-
+        args = cli.parser.parse_args(["upgrade", "test"])
         cli.cmd_upgrade(args, self.cfg)
         # this should be a noop
         cli.cmd_upgrade(args, self.cfg)
@@ -104,8 +103,27 @@ class UpgradeTest(unittest.TestCase):
     def test_upgrade_latest(self):
         self.db0.migrations = ["aaaa"]
 
-        args = mock.Mock(database='test')
+        args = cli.parser.parse_args(["upgrade", "test"])
         cli.cmd_upgrade(args, self.cfg)
 
         self.assertEqual(self.db0.migrations, ['aaaa', 'bbbb', 'cccc'])
         self.assertEqual(self.db0.data, {'hello': 'world', 'value': 'c'})
+
+    def test_upgrade_particular(self):
+        self.db0.migrations = ["aaaa"]
+
+        args = cli.parser.parse_args(["upgrade", "--revision", "bbbb", "test"])
+        cli.cmd_upgrade(args, self.cfg)
+
+        self.assertEqual(self.db0.migrations, ['aaaa', 'bbbb'])
+        self.assertEqual(self.db0.data, {'value': 'b'})
+
+    def test_downgrade(self):
+        self.db0.migrations = ["aaaa", "bbbb", "cccc"]
+        self.db0.data = {'hello': 'world', 'value': 'c'}
+
+        args = cli.parser.parse_args(["upgrade", "--revision", "aaaa", "test"])
+        cli.cmd_upgrade(args, self.cfg)
+
+        self.assertEqual(self.db0.migrations, ['aaaa'])
+        self.assertEqual(self.db0.data, {'value': 'a'})
