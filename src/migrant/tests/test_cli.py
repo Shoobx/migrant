@@ -13,8 +13,7 @@ from ConfigParser import SafeConfigParser
 
 import mock
 
-from migrant import cli
-from migrant import backend
+from migrant import cli, backend, exceptions
 
 
 HERE = os.path.dirname(__file__)
@@ -203,4 +202,66 @@ class InitTest(unittest.TestCase):
         cli.dispatch(args, cfg)
 
         self.assertTrue(os.path.exists(os.path.join(self.dir, "repo")))
-        self.assertEqual(open(slistfname).read(), "aaaa_test.py")
+        with open(slistfname) as slist:
+            self.assertEqual(slist.read(), "aaaa_test.py")
+
+
+class NewTest(unittest.TestCase):
+    def setUp(self):
+        self.dir = tempfile.mkdtemp("migrant")
+        self.slistfname = os.path.join(self.dir, "repo", "scripts.lst")
+
+        # Create initialized repo
+        SAMPLE_CONFIG = textwrap.dedent("""
+        [newdb]
+        backend = noop
+        repository = %s/repo
+        """ % self.dir)
+
+        self.cfg = SafeConfigParser()
+        self.cfg.readfp(io.BytesIO(SAMPLE_CONFIG), "SAMPLE_CONFIG")
+
+    def tearDown(self):
+        shutil.rmtree(self.dir)
+
+    def initialize(self):
+        # Initialize repository
+        args = cli.parser.parse_args(["init", "newdb"])
+        cli.dispatch(args, self.cfg)
+
+    def test_new_uninitialized(self):
+        args = cli.parser.parse_args(["new", "newdb", "First script"])
+        with self.assertRaises(exceptions.RepositoryNotFound):
+            cli.dispatch(args, self.cfg)
+
+    def test_new_initialized(self):
+        self.initialize()
+        args = cli.parser.parse_args(["new", "newdb", "First script"])
+        cli.dispatch(args, self.cfg)
+
+        with open(self.slistfname) as slist:
+            lines = slist.readlines()
+            self.assertEqual(len(lines), 3)
+            self.assertEqual(lines[-1].strip(), "e0f428_first_script.py")
+
+    def test_new_subsequent(self):
+        self.initialize()
+        args = cli.parser.parse_args(["new", "newdb", "First script"])
+        cli.dispatch(args, self.cfg)
+
+        args = cli.parser.parse_args(["new", "newdb", "Second script"])
+        cli.dispatch(args, self.cfg)
+
+        with open(self.slistfname) as slist:
+            lines = slist.readlines()
+            self.assertEqual(len(lines), 4)
+            self.assertEqual(lines[-2].strip(), "e0f428_first_script.py")
+            self.assertEqual(lines[-1].strip(), "ad1b5b_second_script.py")
+
+    def test_new_duplicate(self):
+        self.initialize()
+        args = cli.parser.parse_args(["new", "newdb", "First script"])
+        cli.dispatch(args, self.cfg)
+
+        with self.assertRaises(exceptions.ScriptAlreadyExists):
+            cli.dispatch(args, self.cfg)

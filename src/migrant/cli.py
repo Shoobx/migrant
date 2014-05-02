@@ -22,7 +22,9 @@ def cmd_init(args, cfg):
 
 
 def cmd_new(args, cfg):
-    print "NEW", args
+    cfg = get_db_config(cfg, args.database)
+    repo = create_repo(cfg)
+    repo.new_script(args.title)
 
 
 def cmd_upgrade(args, cfg):
@@ -49,7 +51,8 @@ new_parser = commands.add_parser(
     "new",
     help="Create new migration script")
 new_parser.set_defaults(cmd=cmd_new)
-
+new_parser.add_argument("database", help="Database name")
+new_parser.add_argument("title", help="Migration script title")
 
 # UPGRADE options
 upgrade_parser = commands.add_parser(

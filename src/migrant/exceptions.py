@@ -13,6 +13,14 @@ class ScriptNotFoundError(RuntimeError):
     pass
 
 
+class ScriptAlreadyExists(RuntimeError):
+    pass
+
+
+class RepositoryNotFound(RuntimeError):
+    pass
+
+
 class BackendNotRegistered(RuntimeError):
     pass
 
