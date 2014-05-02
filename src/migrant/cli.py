@@ -6,16 +6,24 @@
 
 import argparse
 import logging
+from ConfigParser import SafeConfigParser
+
+from migrant.engine import MigrantEngine, create_repo
+from migrant.backend import create_backend
 
 log = logging.getLogger(__name__)
 
 
-def cmd_new(args):
+def cmd_new(args, cfg):
     print "NEW", args
 
 
-def cmd_upgrade(args):
-    print "UPGRADE", args
+def cmd_upgrade(args, cfg):
+    cfg = get_db_config(cfg, args.database)
+    repo = create_repo(cfg)
+    backend = create_backend(cfg)
+    engine = MigrantEngine(backend, repo, cfg)
+    engine.update()
 
 
 parser = argparse.ArgumentParser(
@@ -38,7 +46,18 @@ upgrade_parser.add_argument("-n", "--dry-run", action="store_true",
 upgrade_parser.add_argument("database", help="Database name to upgrade")
 
 
+def load_config():
+    cfg = SafeConfigParser()
+    with open('migrant.ini') as cfgfp:
+        cfg.readfp(cfgfp)
+    return cfg
+
+
+def get_db_config(cfg, name):
+    return dict(cfg.items(name))
+
+
 def main():
+    cfg = load_config()
     args = parser.parse_args()
-    args.cmd(args)
-    print args.cmd
+    args.cmd(args, cfg)
