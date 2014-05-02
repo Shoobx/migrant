@@ -4,6 +4,7 @@
 #
 ###############################################################################
 import os
+import sys
 import argparse
 import logging
 from ConfigParser import SafeConfigParser
@@ -92,6 +93,9 @@ def dispatch(args, cfg):
 
 def main():
     args = parser.parse_args()
-    cfg = load_config()
-    setup_logging(args, cfg)
-    dispatch(args, cfg)
+    try:
+        cfg = load_config()
+        setup_logging(args, cfg)
+        dispatch(args, cfg)
+    except exceptions.MigrantException, e:
+        sys.exit("fatal: %s" % e)

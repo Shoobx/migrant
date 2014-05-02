@@ -5,25 +5,34 @@
 ###############################################################################
 
 
-class ConfigurationError(RuntimeError):
+class MigrantException(RuntimeError):
     pass
 
 
-class ScriptNotFoundError(RuntimeError):
+class ConfigurationError(MigrantException):
     pass
 
 
-class ScriptAlreadyExists(RuntimeError):
-    pass
+class ScriptNotFoundError(MigrantException):
+    def __str__(self):
+        return "Script not found: %s" % self.message
 
 
-class RepositoryNotFound(RuntimeError):
-    pass
+class ScriptAlreadyExists(MigrantException):
+    def __str__(self):
+        return "Script already exists: %s" % self.message
 
 
-class BackendNotRegistered(RuntimeError):
-    pass
+class RepositoryNotFound(MigrantException):
+    def __str__(self):
+        return "Repository not found: %s" % self.message
 
 
-class BackendNameConflict(RuntimeError):
-    pass
+class BackendNotRegistered(MigrantException):
+    def __str__(self):
+        return "Backend not registered: %s" % self.message
+
+
+class BackendNameConflict(MigrantException):
+    def __str__(self):
+        return "Backend name conflict in these pacakges: %s" % self.message
