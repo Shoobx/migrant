@@ -36,6 +36,10 @@ class MigrantEngine(object):
     def initialize_db(self, db, initial_revid):
         log.info("Initializing migrations for %s. Assuming database is at %s" %
                  (db, initial_revid))
+        if initial_revid != "INITIAL":
+            # Try to resolve into proper script name
+            script = self.repository.load_script(initial_revid)
+            initial_revid = script.name
         self.backend.push_migration(db, initial_revid)
 
     def pick_rev_id(self, rev_id=None):
@@ -43,7 +47,7 @@ class MigrantEngine(object):
             # Pick latest one
             rev_id = self.script_ids[-1]
 
-        if rev_id not in self.script_ids:
+        if canonical_rev_id(rev_id) not in self.script_ids:
             raise exceptions.ScriptNotFoundError(rev_id)
 
         return rev_id
@@ -51,8 +55,9 @@ class MigrantEngine(object):
     def calc_actions(self, db, target_revid):
         """Caclulate actions, required to update to revision `target_revid`
         """
+        target_revid = canonical_rev_id(target_revid)
         assert target_revid in self.script_ids
-        migrations = self.backend.list_migrations(db)
+        migrations = self.list_backend_migrations(db)
         assert len(migrations) > 0, "Migrations are initialized"
 
         script_idx = {v: idx for idx, v in enumerate(self.script_ids)}
@@ -76,17 +81,28 @@ class MigrantEngine(object):
                  and s not in migrations]
         return [('-', rid) for rid in toremove] + [('+', rid) for rid in toadd]
 
+    def list_backend_migrations(self, db):
+        return [canonical_rev_id(revid)
+                for revid in self.backend.list_migrations(db)]
+
     def execute_actions(self, db, actions):
         for action, revid in actions:
             script = self.repository.load_script(revid)
             if action == "+":
                 if not self.dry_run:
-                    log.info("Upgrading to %s" % revid)
+                    log.info("Upgrading to %s" % script.name)
                     script.up(db)
-                    self.backend.push_migration(db, revid)
+                    self.backend.push_migration(db, script.name)
             else:
                 assert action == "-"
-                log.info("Reverting %s" % revid)
+                log.info("Reverting %s" % script.name)
                 if not self.dry_run:
                     script.down(db)
-                    self.backend.pop_migration(db, revid)
+                    self.backend.pop_migration(db, script.name)
+
+
+def canonical_rev_id(migration_name):
+    if "_" in migration_name:
+        return migration_name.split("_", 1)[0]
+    else:
+        return migration_name

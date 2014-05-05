@@ -103,7 +103,7 @@ class UpgradeTest(unittest.TestCase):
         args = cli.parser.parse_args(["test", "upgrade"])
         cli.dispatch(args, self.cfg)
 
-        self.assertEqual(self.db0.migrations, ['cccc'])
+        self.assertEqual(self.db0.migrations, ['cccc_third'])
 
     def test_subsequent_emtpy_upgrade(self):
         args = cli.parser.parse_args(["test", "upgrade"])
@@ -111,38 +111,43 @@ class UpgradeTest(unittest.TestCase):
         # this should be a noop
         cli.dispatch(args, self.cfg)
 
-        self.assertEqual(self.db0.migrations, ['cccc'])
+        self.assertEqual(self.db0.migrations, ['cccc_third'])
 
     def test_upgrade_latest(self):
-        self.db0.migrations = ["aaaa"]
+        self.db0.migrations = ["aaaa_first"]
 
         args = cli.parser.parse_args(["test", "upgrade"])
         cli.dispatch(args, self.cfg)
 
-        self.assertEqual(self.db0.migrations, ['aaaa', 'bbbb', 'cccc'])
+        self.assertEqual(self.db0.migrations,
+                         ['aaaa_first', 'bbbb_second', 'cccc_third'])
         self.assertEqual(self.db0.data, {'hello': 'world', 'value': 'c'})
 
     def test_upgrade_particular(self):
-        self.db0.migrations = ["aaaa"]
+        self.db0.migrations = ["aaaa_first"]
 
-        args = cli.parser.parse_args(["test", "upgrade", "--revision", "bbbb"])
+        args = cli.parser.parse_args(
+            ["test", "upgrade", "--revision", "bbbb_second"])
         cli.dispatch(args, self.cfg)
 
-        self.assertEqual(self.db0.migrations, ['aaaa', 'bbbb'])
+        self.assertEqual(self.db0.migrations, ['aaaa_first', 'bbbb_second'])
         self.assertEqual(self.db0.data, {'value': 'b'})
 
     def test_downgrade(self):
-        self.db0.migrations = ["INITIAL", "aaaa", "bbbb", "cccc"]
+        self.db0.migrations = ["INITIAL", "aaaa_first",
+                               "bbbb_second", "cccc_third"]
         self.db0.data = {'hello': 'world', 'value': 'c'}
 
-        args = cli.parser.parse_args(["test", "upgrade", "--revision", "aaaa"])
+        args = cli.parser.parse_args(["test", "upgrade",
+                                      "--revision", "aaaa_first"])
         cli.dispatch(args, self.cfg)
 
-        self.assertEqual(self.db0.migrations, ['INITIAL', 'aaaa'])
+        self.assertEqual(self.db0.migrations, ['INITIAL', 'aaaa_first'])
         self.assertEqual(self.db0.data, {'value': 'a'})
 
     def test_downgrade_to_initial(self):
-        self.db0.migrations = ["INITIAL", "aaaa", "bbbb", "cccc"]
+        self.db0.migrations = ["INITIAL", "aaaa_first",
+                               "bbbb_second", "cccc_third"]
         self.db0.data = {'hello': 'world', 'value': 'c'}
 
         args = cli.parser.parse_args(["test", "upgrade",
@@ -153,13 +158,13 @@ class UpgradeTest(unittest.TestCase):
         self.assertEqual(self.db0.data, {})
 
     def test_dry_run_upgrade(self):
-        self.db0.migrations = ["aaaa"]
+        self.db0.migrations = ["aaaa_first"]
         self.db0.data = {"value": "a"}
 
         args = cli.parser.parse_args(["test", "upgrade", "--dry-run"])
         cli.dispatch(args, self.cfg)
 
-        self.assertEqual(self.db0.migrations, ['aaaa'])
+        self.assertEqual(self.db0.migrations, ['aaaa_first'])
         self.assertEqual(self.db0.data, {'value': 'a'})
 
 
