@@ -7,7 +7,7 @@ import os
 import imp
 import logging
 import string
-import sha
+import hashlib
 
 log = logging.getLogger(__name__)
 
@@ -76,7 +76,7 @@ class Repository(object):
         toreplace = string.punctuation + " "
         trmap = string.maketrans(toreplace, '_' * len(toreplace))
         name = title.lower().translate(trmap)
-        revid = sha.new(title).hexdigest()[:6]
+        revid = hashlib.sha1(title).hexdigest()[:6]
         fname = "%s_%s.py" % (revid, name)
         fullfname = os.path.join(self.directory, fname)
 
