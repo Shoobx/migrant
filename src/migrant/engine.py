@@ -34,13 +34,15 @@ class MigrantEngine(object):
             log.info("Migration completed for %s" % db)
 
     def initialize_db(self, db, initial_revid):
+        for sid in self.script_ids:
+            if sid != "INITIAL":
+                # Try to resolve into proper script name
+                script = self.repository.load_script(sid)
+                sid = script.name
+            self.backend.push_migration(db, sid)
+
         log.info("Initializing migrations for %s. Assuming database is at %s" %
-                 (db, initial_revid))
-        if initial_revid != "INITIAL":
-            # Try to resolve into proper script name
-            script = self.repository.load_script(initial_revid)
-            initial_revid = script.name
-        self.backend.push_migration(db, initial_revid)
+                 (db, sid))
 
     def pick_rev_id(self, rev_id=None):
         if rev_id is None:

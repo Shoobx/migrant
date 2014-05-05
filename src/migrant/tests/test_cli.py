@@ -103,7 +103,8 @@ class UpgradeTest(unittest.TestCase):
         args = cli.parser.parse_args(["test", "upgrade"])
         cli.dispatch(args, self.cfg)
 
-        self.assertEqual(self.db0.migrations, ['cccc_third'])
+        self.assertEqual(self.db0.migrations,
+                         ['INITIAL', 'aaaa_first', 'bbbb_second', 'cccc_third'])
 
     def test_subsequent_emtpy_upgrade(self):
         args = cli.parser.parse_args(["test", "upgrade"])
@@ -111,7 +112,8 @@ class UpgradeTest(unittest.TestCase):
         # this should be a noop
         cli.dispatch(args, self.cfg)
 
-        self.assertEqual(self.db0.migrations, ['cccc_third'])
+        self.assertEqual(self.db0.migrations,
+                         ['INITIAL', 'aaaa_first', 'bbbb_second', 'cccc_third'])
 
     def test_upgrade_latest(self):
         self.db0.migrations = ["aaaa_first"]
