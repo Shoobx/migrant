@@ -52,7 +52,7 @@ init_parser.set_defaults(cmd=cmd_init)
 # NEW options
 new_parser = commands.add_parser(
     "new",
-    help="Create new migration script")
+    help="Create new migration script, add a script title argument!")
 new_parser.set_defaults(cmd=cmd_new)
 # new_parser.add_argument("database", help="Database name")
 new_parser.add_argument("title", help="Migration script title")
@@ -82,8 +82,9 @@ def load_config():
 
 def get_db_config(cfg, name):
     if not cfg.has_section(name):
+        ava = ', '.join(cfg.sections())
         raise exceptions.ConfigurationError(
-            "No database %s in migrant.ini" % name)
+            "No database %s in migrant.ini, available names: %s" % (name, ava))
     return dict(cfg.items(name))
 
 
