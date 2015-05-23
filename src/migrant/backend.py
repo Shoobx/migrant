@@ -16,18 +16,28 @@ class MigrantBackend(object):
     """Base interface for backend implementations"""
 
     def list_migrations(self, db):
-        raise NotImplementedError
+        raise NotImplementedError  # pragma: no cover
 
     def push_migration(self, db, migration):
-        raise NotImplementedError
+        raise NotImplementedError  # pragma: no cover
 
     def pop_migration(self, db, migration):
-        raise NotImplementedError
+        raise NotImplementedError  # pragma: no cover
 
     def generate_connections(self):
         """Generate connections to process
         """
-        raise NotImplementedError
+        raise NotImplementedError  # pragma: no cover
+
+    def on_new_script(self, rev_name):
+        """Called when new script is created
+        """
+        pass  # pragma: no cover
+
+    def on_repo_init(self):
+        """Called when new script repository is initialized
+        """
+        pass  # pragma: no cover
 
 
 class NoopBackend(MigrantBackend):

@@ -77,7 +77,8 @@ class Repository(object):
         trmap = string.maketrans(toreplace, '_' * len(toreplace))
         name = title.lower().translate(trmap)
         revid = hashlib.sha1(title).hexdigest()[:6]
-        fname = "%s_%s.py" % (revid, name)
+        revname = "%s_%s" % (revid, name)
+        fname = "%s.py" % revname
         fullfname = os.path.join(self.directory, fname)
 
         if os.path.exists(fullfname):
@@ -97,6 +98,7 @@ class Repository(object):
             lf.write("\n")
 
         log.info("Script %s created" % fullfname)
+        return revname
 
     def list_script_ids(self):
         """List scripts in right order

@@ -21,12 +21,16 @@ def cmd_init(args, cfg):
     cfg = get_db_config(cfg, args.database)
     repo = create_repo(cfg)
     repo.init()
+    backend = create_backend(cfg)
+    backend.on_repo_init()
 
 
 def cmd_new(args, cfg):
     cfg = get_db_config(cfg, args.database)
     repo = create_repo(cfg)
-    repo.new_script(args.title)
+    revname = repo.new_script(args.title)
+    backend = create_backend(cfg)
+    backend.on_new_script(revname)
 
 
 def cmd_upgrade(args, cfg):

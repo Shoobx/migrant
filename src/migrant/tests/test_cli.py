@@ -9,9 +9,8 @@ import unittest
 import tempfile
 import shutil
 import textwrap
+import pytest
 from ConfigParser import SafeConfigParser
-
-import mock
 
 from migrant import cli, backend, exceptions
 
@@ -52,6 +51,8 @@ class TestDb(object):
 class TestBackend(backend.MigrantBackend):
     def __init__(self, dbs):
         self.dbs = dbs
+        self.new_scripts = []
+        self.inits = 0
 
     def list_migrations(self, db):
         return db.migrations
@@ -68,6 +69,16 @@ class TestBackend(backend.MigrantBackend):
         for db in self.dbs:
             yield db
 
+    def on_new_script(self, rev_name):
+        """Called when new script is created
+        """
+        self.new_scripts.append(rev_name)
+
+    def on_repo_init(self):
+        """Called when new script repository is initialized
+        """
+        self.inits += 1
+
 
 class ConfigTest(unittest.TestCase):
     def test_get_db_config(self):
@@ -80,19 +91,16 @@ class ConfigTest(unittest.TestCase):
                           'repository': 'repo/'})
 
 
+
 class UpgradeTest(unittest.TestCase):
-    def setUp(self):
+    @pytest.fixture(autouse=True)
+    def backend_fixture(self, migrant_backend):
         self.db0 = TestDb("db0")
         self.backend = TestBackend([self.db0])
-
-        mock.patch.object(backend, "get_backend",
-                          return_value=lambda cfg: self.backend).start()
+        migrant_backend.set(self.backend)
 
         self.cfg = SafeConfigParser()
         self.cfg.readfp(io.BytesIO(INTEGRATION_CONFIG), "INTEGRATION_CONFIG")
-
-    def tearDown(self):
-        mock.patch.stopall()
 
     def test_no_scripts(self):
         args = cli.parser.parse_args(["virgin", "upgrade"])
@@ -177,98 +185,110 @@ class InitTest(unittest.TestCase):
     def tearDown(self):
         shutil.rmtree(self.dir)
 
-    def test_init(self):
-        SAMPLE_CONFIG = textwrap.dedent("""
-        [newdb]
-        backend = noop
-        repository = %s/repo
-        """ % self.dir)
 
-        cfg = SafeConfigParser()
-        cfg.readfp(io.BytesIO(SAMPLE_CONFIG), "SAMPLE_CONFIG")
-        args = cli.parser.parse_args(["newdb", "init"])
-        cli.dispatch(args, cfg)
+@pytest.fixture
+def sample_config(tmpdir):
+    SAMPLE_CONFIG = textwrap.dedent("""
+    [newdb]
+    backend = noop
+    repository = %s/repo
+    """ % tmpdir)
 
-        self.assertTrue(os.path.exists(os.path.join(self.dir, "repo")))
-
-    def test_init_subsequent(self):
-        SAMPLE_CONFIG = textwrap.dedent("""
-        [newdb]
-        backend = noop
-        repository = %s/repo
-        """ % self.dir)
-
-        os.mkdir(os.path.join(self.dir, "repo"))
-        slistfname = os.path.join(self.dir, "repo", "scripts.lst")
-        with open(slistfname, "w") as f:
-            f.write("aaaa_test.py")
-
-        cfg = SafeConfigParser()
-        cfg.readfp(io.BytesIO(SAMPLE_CONFIG), "SAMPLE_CONFIG")
-        args = cli.parser.parse_args(["newdb", "init"])
-        cli.dispatch(args, cfg)
-
-        self.assertTrue(os.path.exists(os.path.join(self.dir, "repo")))
-        with open(slistfname) as slist:
-            self.assertEqual(slist.read(), "aaaa_test.py")
+    cfg = SafeConfigParser()
+    cfg.readfp(io.BytesIO(SAMPLE_CONFIG), "SAMPLE_CONFIG")
+    return cfg
 
 
-class NewTest(unittest.TestCase):
-    def setUp(self):
-        self.dir = tempfile.mkdtemp("migrant")
-        self.slistfname = os.path.join(self.dir, "repo", "scripts.lst")
+def initialize(cfg):
+    # Initialize repository
+    args = cli.parser.parse_args(["newdb", "init"])
+    cli.dispatch(args, cfg)
 
-        # Create initialized repo
-        SAMPLE_CONFIG = textwrap.dedent("""
-        [newdb]
-        backend = noop
-        repository = %s/repo
-        """ % self.dir)
 
-        self.cfg = SafeConfigParser()
-        self.cfg.readfp(io.BytesIO(SAMPLE_CONFIG), "SAMPLE_CONFIG")
+def get_scripts_filename(cfg):
+    repodir = cfg.get("newdb", "repository")
+    return os.path.join(repodir, "scripts.lst")
 
-    def tearDown(self):
-        shutil.rmtree(self.dir)
 
-    def initialize(self):
-        # Initialize repository
-        args = cli.parser.parse_args(["newdb", "init"])
-        cli.dispatch(args, self.cfg)
+def test_init(sample_config):
+    args = cli.parser.parse_args(["newdb", "init"])
+    cli.dispatch(args, sample_config)
 
-    def test_new_uninitialized(self):
-        args = cli.parser.parse_args(["newdb", "new", "First script"])
-        with self.assertRaises(exceptions.RepositoryNotFound):
-            cli.dispatch(args, self.cfg)
+    repodir = sample_config.get("newdb", "repository")
+    assert os.path.exists(repodir)
 
-    def test_new_initialized(self):
-        self.initialize()
-        args = cli.parser.parse_args(["newdb", "new", "First script"])
-        cli.dispatch(args, self.cfg)
 
-        with open(self.slistfname) as slist:
-            lines = slist.readlines()
-            self.assertEqual(len(lines), 3)
-            self.assertEqual(lines[-1].strip(), "e0f428_first_script.py")
+def test_init_subsequent(sample_config):
+    os.mkdir(sample_config.get("newdb", "repository"))
 
-    def test_new_subsequent(self):
-        self.initialize()
-        args = cli.parser.parse_args(["newdb", "new", "First script"])
-        cli.dispatch(args, self.cfg)
+    slistfname = get_scripts_filename(sample_config)
+    with open(slistfname, "w") as f:
+        f.write("aaaa_test.py")
 
-        args = cli.parser.parse_args(["newdb", "new", "Second script"])
-        cli.dispatch(args, self.cfg)
+    args = cli.parser.parse_args(["newdb", "init"])
+    cli.dispatch(args, sample_config)
 
-        with open(self.slistfname) as slist:
-            lines = slist.readlines()
-            self.assertEqual(len(lines), 4)
-            self.assertEqual(lines[-2].strip(), "e0f428_first_script.py")
-            self.assertEqual(lines[-1].strip(), "ad1b5b_second_script.py")
+    with open(slistfname) as slist:
+        assert slist.read() == "aaaa_test.py"
 
-    def test_new_duplicate(self):
-        self.initialize()
-        args = cli.parser.parse_args(["newdb", "new", "First script"])
-        cli.dispatch(args, self.cfg)
 
-        with self.assertRaises(exceptions.ScriptAlreadyExists):
-            cli.dispatch(args, self.cfg)
+def test_new_uninitialized(sample_config):
+    args = cli.parser.parse_args(["newdb", "new", "First script"])
+    with pytest.raises(exceptions.RepositoryNotFound):
+        cli.dispatch(args, sample_config)
+
+
+def test_new_initialized(sample_config):
+    initialize(sample_config)
+    args = cli.parser.parse_args(["newdb", "new", "First script"])
+    cli.dispatch(args, sample_config)
+
+    with open(get_scripts_filename(sample_config)) as slist:
+        lines = slist.readlines()
+        assert len(lines) == 3
+        assert lines[-1].strip() == "e0f428_first_script.py"
+
+
+def test_new_subsequent(sample_config):
+    initialize(sample_config)
+    args = cli.parser.parse_args(["newdb", "new", "First script"])
+    cli.dispatch(args, sample_config)
+
+    args = cli.parser.parse_args(["newdb", "new", "Second script"])
+    cli.dispatch(args, sample_config)
+
+    with open(get_scripts_filename(sample_config)) as slist:
+        lines = slist.readlines()
+        assert len(lines) == 4
+        assert lines[-2].strip() == "e0f428_first_script.py"
+        assert lines[-1].strip() == "ad1b5b_second_script.py"
+
+
+def test_new_duplicate(sample_config):
+    initialize(sample_config)
+    args = cli.parser.parse_args(["newdb", "new", "First script"])
+    cli.dispatch(args, sample_config)
+
+    with pytest.raises(exceptions.ScriptAlreadyExists):
+        cli.dispatch(args, sample_config)
+
+
+def test_new_on_repo_init(sample_config, migrant_backend):
+    backend = TestBackend([])
+    migrant_backend.set(backend)
+
+    args = cli.parser.parse_args(["newdb", "init"])
+    cli.dispatch(args, sample_config)
+
+    assert backend.inits == 1
+
+
+def test_new_on_new_script(sample_config, migrant_backend):
+    backend = TestBackend([])
+    migrant_backend.set(backend)
+    initialize(sample_config)
+
+    args = cli.parser.parse_args(["newdb", "new", "First script"])
+    cli.dispatch(args, sample_config)
+
+    assert backend.new_scripts == ['e0f428_first_script']
