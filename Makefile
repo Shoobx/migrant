@@ -12,24 +12,17 @@ bootstrap.py:
 bin/buildout: .venv bootstrap.py
 	.venv/bin/python bootstrap.py
 
-bin/test: bin/buildout buildout.cfg setup.py versions.cfg
+bin/py.test: bin/buildout buildout.cfg setup.py versions.cfg
 	bin/buildout
-	touch bin/test
+	touch bin/py.test
 
 .PHONY: test
-test: bin/test
-	bin/test -v
+test: bin/py.test
+	bin/py.test --cov=src --cov-report=term-missing --cov-report=html -s --tb=native
 
-.PHONY: coverage
-coverage: bin/test
-	bin/coverage run --source=src --omit=*tests* ./bin/test
-	bin/coverage report
-	bin/coverage html
-	@echo
-	@echo Now run:
-	@echo
-	@echo "    $ sensible-browser htmlcov/index.html"
-	@echo
+jenkins-build: bin/py.test
+	bin/py.test -vv --cov=src --cov-report=xml --junit-xml=testresults.xml
 
 clean:
 	rm -rvf bin src/*.egg-info .installed.cfg parts .venv
+
