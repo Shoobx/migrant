@@ -46,9 +46,11 @@ class Script(object):
         self.module = imp.load_source(self.name, filename)
 
     def up(self, db):
+        __traceback_info__ = db
         self.module.up(db)
 
     def down(self, db):
+        __traceback_info__ = db
         self.module.down(db)
 
 
