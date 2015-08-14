@@ -1,7 +1,7 @@
 PYTHON = python2.7
 
 
-all: bin/test
+all: bin/py.test
 
 bootstrap.py:
 	wget http://downloads.buildout.org/2/bootstrap.py
