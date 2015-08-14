@@ -1,6 +1,6 @@
 bin/
 develop-eggs/
-ve/
+.venv/
 parts/
 .installed.cfg
 bootstrap.py
