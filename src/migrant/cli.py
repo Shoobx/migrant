@@ -23,14 +23,15 @@ def cmd_init(args, cfg):
     repo.init()
     backend = create_backend(cfg)
     backend.on_repo_init()
+    backend.on_repo_change(repo.list_script_ids())
 
 
 def cmd_new(args, cfg):
     cfg = get_db_config(cfg, args.database)
     repo = create_repo(cfg)
-    revname = repo.new_script(args.title)
+    repo.new_script(args.title)
     backend = create_backend(cfg)
-    backend.on_new_script(revname)
+    backend.on_repo_change(repo.list_script_names())
 
 
 def cmd_upgrade(args, cfg):
@@ -39,6 +40,13 @@ def cmd_upgrade(args, cfg):
     backend = create_backend(cfg)
     engine = MigrantEngine(backend, repo, cfg, dry_run=args.dry_run)
     engine.update(args.revision)
+
+
+def cmd_backendrefresh(args, cfg):
+    cfg = get_db_config(cfg, args.database)
+    repo = create_repo(cfg)
+    backend = create_backend(cfg)
+    backend.on_repo_change(repo.list_script_names())
 
 
 parser = argparse.ArgumentParser(
@@ -73,6 +81,13 @@ upgrade_parser.add_argument("-n", "--dry-run", action="store_true",
 upgrade_parser.add_argument("-r", "--revision",
                             help=("Revision to upgrade to. If not specified, "
                                   "latest revision will be used"))
+
+# BACKENDREFRESH options
+be_refresh_parser = commands.add_parser(
+    "backendrefresh",
+    help="Refresh backend with the list of scripts")
+be_refresh_parser.set_defaults(cmd=cmd_backendrefresh)
+# new_parser.add_argument("database", help="Database name")
 
 
 def load_config():

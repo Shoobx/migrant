@@ -69,10 +69,10 @@ class TestBackend(backend.MigrantBackend):
         for db in self.dbs:
             yield db
 
-    def on_new_script(self, rev_name):
+    def on_repo_change(self, rev_names):
         """Called when new script is created
         """
-        self.new_scripts.append(rev_name)
+        self.new_scripts = rev_names
 
     def on_repo_init(self):
         """Called when new script repository is initialized
@@ -89,7 +89,6 @@ class ConfigTest(unittest.TestCase):
                          {'backend': 'mongo',
                           'backend_uri': 'localhost:27017/acme',
                           'repository': 'repo/'})
-
 
 
 class UpgradeTest(unittest.TestCase):
@@ -289,6 +288,22 @@ def test_new_on_new_script(sample_config, migrant_backend):
     initialize(sample_config)
 
     args = cli.parser.parse_args(["newdb", "new", "First script"])
+    cli.dispatch(args, sample_config)
+
+    assert backend.new_scripts == ['e0f428_first_script']
+
+
+def test_new_backendrefresh(sample_config, migrant_backend):
+    backend = TestBackend([])
+    migrant_backend.set(backend)
+    initialize(sample_config)
+
+    args = cli.parser.parse_args(["newdb", "new", "First script"])
+    cli.dispatch(args, sample_config)
+
+    backend.new_scripts = []
+
+    args = cli.parser.parse_args(["newdb", "backendrefresh"])
     cli.dispatch(args, sample_config)
 
     assert backend.new_scripts == ['e0f428_first_script']

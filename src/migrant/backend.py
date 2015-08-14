@@ -29,10 +29,15 @@ class MigrantBackend(object):
         """
         raise NotImplementedError  # pragma: no cover
 
-    def on_new_script(self, rev_name):
-        """Called when new script is created
+    def on_repo_change(self, rev_names):
+        """Called when scripts change in the repo
         """
         pass  # pragma: no cover
+
+    def on_new_script(self, rev_name):
+        """BBB: Called when new script is created
+        """
+        raise NotImplementedError  # pragma: no cover
 
     def on_repo_init(self):
         """Called when new script repository is initialized
