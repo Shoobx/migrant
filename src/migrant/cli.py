@@ -115,8 +115,8 @@ def dispatch(args, cfg):
     args.cmd(args, cfg)
 
 
-def main():
-    args = parser.parse_args()
+def main(args=sys.argv[1:]):
+    args = parser.parse_args(args)
     try:
         cfg = load_config()
         setup_logging(args, cfg)
