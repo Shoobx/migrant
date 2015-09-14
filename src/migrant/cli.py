@@ -53,6 +53,9 @@ parser = argparse.ArgumentParser(
     description='Database Migration Engine')
 parser.add_argument("database", help="Database name")
 
+parser.add_argument("-c", "--config", default="migrant.ini",
+                    help=("Config file to be used"))
+
 commands = parser.add_subparsers()
 
 # INIT options
@@ -90,11 +93,11 @@ be_refresh_parser.set_defaults(cmd=cmd_backendrefresh)
 # new_parser.add_argument("database", help="Database name")
 
 
-def load_config():
-    if not os.path.exists("migrant.ini"):
-        raise exceptions.ConfigurationError("migrant.ini is missing")
+def load_config(args):
+    if not os.path.exists(args.config):
+        raise exceptions.ConfigurationError("%s is missing" % args.config)
     cfg = SafeConfigParser()
-    with open('migrant.ini') as cfgfp:
+    with open(args.config) as cfgfp:
         cfg.readfp(cfgfp)
     return cfg
 
@@ -118,7 +121,7 @@ def dispatch(args, cfg):
 def main(args=sys.argv[1:]):
     args = parser.parse_args(args)
     try:
-        cfg = load_config()
+        cfg = load_config(args)
         setup_logging(args, cfg)
         dispatch(args, cfg)
     except exceptions.MigrantException, e:
