@@ -20,18 +20,38 @@ class MigrantEngine(object):
 
     def update(self, target_id=None):
         target_id = self.pick_rev_id(target_id)
-        for db in self.backend.generate_connections():
-            log.info("Starting migration for %s" % db)
-            migrations = self.backend.list_migrations(db)
+        conns = self.backend.generate_connections()
 
+        for db in self.initialized_dbs(conns):
+            log.info("Starting migration for %s" % db)
+            actions = self.calc_actions(db, target_id)
+            self.execute_actions(db, actions)
+            log.info("Migration completed for %s" % db)
+
+    def test(self, target_id=None):
+        target_id = self.pick_rev_id(target_id)
+        conns = self.backend.generate_test_connections()
+
+        for db in self.initialized_dbs(conns):
+            actions = self.calc_actions(db, target_id)
+            log.info("Testing upgrade for %s" % db)
+            self.execute_actions(db, actions, strict=True)
+
+            log.info("Testing downgrade for %s" % db)
+            reverted_actions = self.revert_actions(actions)
+            self.execute_actions(db, reverted_actions, strict=True)
+
+            log.info("Testing completed for %s" % db)
+
+    def initialized_dbs(self, conns):
+        for db in conns:
+            migrations = self.backend.list_migrations(db)
             if not migrations:
                 latest_revid = self.pick_rev_id(None)
                 self.initialize_db(db, latest_revid)
                 continue
 
-            actions = self.calc_actions(db, target_id)
-            self.execute_actions(db, actions)
-            log.info("Migration completed for %s" % db)
+            yield db
 
     def initialize_db(self, db, initial_revid):
         for sid in self.script_ids:
@@ -83,23 +103,38 @@ class MigrantEngine(object):
                  and s not in migrations]
         return [('-', rid) for rid in toremove] + [('+', rid) for rid in toadd]
 
+    def revert_actions(self, actions):
+        reverts = [("+" if a == "-" else "-", script)
+                   for a, script in actions]
+        return list(reversed(reverts))
+
     def list_backend_migrations(self, db):
         return [canonical_rev_id(revid)
                 for revid in self.backend.list_migrations(db)]
 
-    def execute_actions(self, db, actions):
+    def execute_actions(self, db, actions, strict=False):
         for action, revid in actions:
             script = self.repository.load_script(revid)
             if action == "+":
                 if not self.dry_run:
                     log.info("Upgrading to %s" % script.name)
+
+                    if strict:
+                        script.test_before_up(db)
                     script.up(db)
+                    if strict:
+                        script.test_after_up(db)
+
                     self.backend.push_migration(db, script.name)
             else:
                 assert action == "-"
                 log.info("Reverting %s" % script.name)
                 if not self.dry_run:
+                    if strict:
+                        script.test_before_down(db)
                     script.down(db)
+                    if strict:
+                        script.test_after_down(db)
                     self.backend.pop_migration(db, script.name)
 
 

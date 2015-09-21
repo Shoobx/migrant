@@ -9,6 +9,7 @@ import unittest
 import tempfile
 import shutil
 import textwrap
+import logging
 import pytest
 from ConfigParser import SafeConfigParser
 
@@ -69,6 +70,9 @@ class MockedBackend(backend.MigrantBackend):
         for db in self.dbs:
             yield db
 
+    def generate_test_connections(self):
+        return self.generate_connections()
+
     def on_repo_change(self, rev_names):
         """Called when new script is created
         """
@@ -93,13 +97,22 @@ class ConfigTest(unittest.TestCase):
 
 class UpgradeTest(unittest.TestCase):
     @pytest.fixture(autouse=True)
-    def backend_fixture(self, migrant_backend):
+    def backend_fixture(self, tmpdir, migrant_backend):
         self.db0 = MockedDb("db0")
         self.backend = MockedBackend([self.db0])
         migrant_backend.set(self.backend)
 
-        self.cfg = SafeConfigParser()
-        self.cfg.readfp(io.BytesIO(INTEGRATION_CONFIG), "INTEGRATION_CONFIG")
+        migrant_ini = tmpdir.join("migrant.ini")
+        migrant_ini.write(INTEGRATION_CONFIG)
+        self.migrant_ini = str(migrant_ini)
+
+        self.cfg = cli.load_config(self.migrant_ini)
+
+        self.logstream = io.BytesIO()
+        hdl = logging.StreamHandler(self.logstream)
+        hdl.setFormatter(logging.Formatter(logging.BASIC_FORMAT))
+        logging.root.addHandler(hdl)
+        logging.root.setLevel(logging.INFO)
 
     def test_no_scripts(self):
         args = cli.parser.parse_args(["virgin", "upgrade"])
@@ -175,6 +188,18 @@ class UpgradeTest(unittest.TestCase):
 
         self.assertEqual(self.db0.migrations, ['aaaa_first'])
         self.assertEqual(self.db0.data, {'value': 'a'})
+
+    def test_test(self):
+        self.db0.migrations = ["INITIAL", "aaaa_first",
+                               "bbbb_second", "cccc_third"]
+        self.db0.data = {'hello': 'world', 'value': 'c'}
+
+        cli.main(["-c", self.migrant_ini, "test", "test"])
+
+        log = self.logstream.getvalue()
+        assert "Testing upgrade" in log
+        assert "Testing downgrade" in log
+        assert "Testing completed" in log
 
 
 class InitTest(unittest.TestCase):

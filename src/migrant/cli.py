@@ -49,6 +49,14 @@ def cmd_backendrefresh(args, cfg):
     backend.on_repo_change(repo.list_script_names())
 
 
+def cmd_test(args, cfg):
+    cfg = get_db_config(cfg, args.database)
+    repo = create_repo(cfg)
+    backend = create_backend(cfg)
+    engine = MigrantEngine(backend, repo, cfg)
+    engine.test(args.revision)
+
+
 parser = argparse.ArgumentParser(
     description='Database Migration Engine')
 parser.add_argument("database", help="Database name")
@@ -93,11 +101,21 @@ be_refresh_parser.set_defaults(cmd=cmd_backendrefresh)
 # new_parser.add_argument("database", help="Database name")
 
 
-def load_config(args):
-    if not os.path.exists(args.config):
-        raise exceptions.ConfigurationError("%s is missing" % args.config)
+# TEST options
+test_parser = commands.add_parser(
+    "test",
+    help="Test pending migrations by going through update and downgrade")
+test_parser.set_defaults(cmd=cmd_test)
+test_parser.add_argument("-r", "--revision",
+                         help=("Revision to upgrade to. If not specified, "
+                               "latest revision will be used"))
+
+
+def load_config(fname):
+    if not os.path.exists(fname):
+        raise exceptions.ConfigurationError("%s is missing" % fname)
     cfg = SafeConfigParser()
-    with open(args.config) as cfgfp:
+    with open(fname) as cfgfp:
         cfg.readfp(cfgfp)
     return cfg
 
@@ -121,7 +139,7 @@ def dispatch(args, cfg):
 def main(args=sys.argv[1:]):
     args = parser.parse_args(args)
     try:
-        cfg = load_config(args)
+        cfg = load_config(args.config)
         setup_logging(args, cfg)
         dispatch(args, cfg)
     except exceptions.MigrantException, e:

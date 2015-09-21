@@ -33,6 +33,25 @@ def up(db):
 def down(db):
     # Downgrade database
     pass
+
+
+# Tests for migration
+
+def test_before_up(db):
+    pass
+
+
+def test_after_up(db):
+    pass
+
+
+def test_before_down(db):
+    pass
+
+
+def test_after_down(db):
+    pass
+
 """.lstrip()
 
 
@@ -46,12 +65,29 @@ class Script(object):
         self.module = imp.load_source(self.name, filename)
 
     def up(self, db):
-        __traceback_info__ = db
-        self.module.up(db)
+        self._exec("up", db)
 
     def down(self, db):
-        __traceback_info__ = db
-        self.module.down(db)
+        self._exec("down", db)
+
+    def test_before_up(self, db):
+        self._exec("test_before_up", db)
+
+    def test_after_up(self, db):
+        self._exec("test_after_up", db)
+
+    def test_before_down(self, db):
+        self._exec("test_before_down", db)
+
+    def test_after_down(self, db):
+        self._exec("test_after_down", db)
+
+    def _exec(self, method, *args, **kwargs):
+        __traceback_info__= (args, kwargs)
+        if not hasattr(self.module, method):
+            return
+
+        return getattr(self.module, method)(*args, **kwargs)
 
 
 class Repository(object):
