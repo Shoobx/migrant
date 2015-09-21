@@ -18,7 +18,7 @@ bin/py.test: bin/buildout buildout.cfg setup.py versions.cfg
 
 .PHONY: test
 test: bin/py.test
-	bin/py.test --cov=src --cov-report=term-missing --cov-report=html -s --tb=native
+	bin/py.test -rw --cov=src --cov-report=term-missing --cov-report=html -s --tb=native
 
 jenkins-build: bin/py.test
 	bin/py.test -vv --cov=src --cov-report=xml --junit-xml=testresults.xml

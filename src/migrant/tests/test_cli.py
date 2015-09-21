@@ -41,14 +41,14 @@ repository = %s
 """ % os.path.join(HERE, 'noscripts')
 
 
-class TestDb(object):
+class MockedDb(object):
     def __init__(self, name):
         self.name = name
         self.migrations = []
         self.data = {}
 
 
-class TestBackend(backend.MigrantBackend):
+class MockedBackend(backend.MigrantBackend):
     def __init__(self, dbs):
         self.dbs = dbs
         self.new_scripts = []
@@ -94,8 +94,8 @@ class ConfigTest(unittest.TestCase):
 class UpgradeTest(unittest.TestCase):
     @pytest.fixture(autouse=True)
     def backend_fixture(self, migrant_backend):
-        self.db0 = TestDb("db0")
-        self.backend = TestBackend([self.db0])
+        self.db0 = MockedDb("db0")
+        self.backend = MockedBackend([self.db0])
         migrant_backend.set(self.backend)
 
         self.cfg = SafeConfigParser()
@@ -273,7 +273,7 @@ def test_new_duplicate(sample_config):
 
 
 def test_new_on_repo_init(sample_config, migrant_backend):
-    backend = TestBackend([])
+    backend = MockedBackend([])
     migrant_backend.set(backend)
 
     args = cli.parser.parse_args(["newdb", "init"])
@@ -283,7 +283,7 @@ def test_new_on_repo_init(sample_config, migrant_backend):
 
 
 def test_new_on_new_script(sample_config, migrant_backend):
-    backend = TestBackend([])
+    backend = MockedBackend([])
     migrant_backend.set(backend)
     initialize(sample_config)
 
@@ -294,7 +294,7 @@ def test_new_on_new_script(sample_config, migrant_backend):
 
 
 def test_new_backendrefresh(sample_config, migrant_backend):
-    backend = TestBackend([])
+    backend = MockedBackend([])
     migrant_backend.set(backend)
     initialize(sample_config)
 
