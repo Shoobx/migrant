@@ -4,8 +4,9 @@
 #
 ###############################################################################
 
-import pytest
+import logging
 
+import pytest
 import mock
 
 
@@ -23,3 +24,7 @@ def migrant_backend():
 
     with mock.patch("migrant.backend.get_backend") as get_backend:
         yield BackendSetter(get_backend)
+
+
+def pytest_configure(config):
+    logging.root.addHandler(logging.NullHandler())
