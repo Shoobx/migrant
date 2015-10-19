@@ -61,6 +61,7 @@ class MigrantEngineTest(unittest.TestCase):
         engine = _make_engine(['a', 'b'], ['a', 'b', 'c', 'd'], log)
         engine.test()
         assert log == [
+            # DB 1 PASS 1
             "db1 c before up",
             "db1 c up",
             "db1 c after up",
@@ -77,6 +78,41 @@ class MigrantEngineTest(unittest.TestCase):
             "db1 c down",
             "db1 c after down",
 
+            # DB 1 PASS 2
+            "db1 c before up",
+            "db1 c up",
+            "db1 c after up",
+
+            "db1 d before up",
+            "db1 d up",
+            "db1 d after up",
+
+            "db1 d before down",
+            "db1 d down",
+            "db1 d after down",
+
+            "db1 c before down",
+            "db1 c down",
+            "db1 c after down",
+
+            # DB 2 PASS 1
+            "db2 c before up",
+            "db2 c up",
+            "db2 c after up",
+
+            "db2 d before up",
+            "db2 d up",
+            "db2 d after up",
+
+            "db2 d before down",
+            "db2 d down",
+            "db2 d after down",
+
+            "db2 c before down",
+            "db2 c down",
+            "db2 c after down",
+
+            # DB 2 PASS 2
             "db2 c before up",
             "db2 c up",
             "db2 c after up",

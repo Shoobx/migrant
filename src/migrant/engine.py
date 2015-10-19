@@ -34,12 +34,16 @@ class MigrantEngine(object):
 
         for db in self.initialized_dbs(conns):
             actions = self.calc_actions(db, target_id)
-            log.info("Testing upgrade for %s" % db)
-            self.execute_actions(db, actions, strict=True)
 
-            log.info("Testing downgrade for %s" % db)
-            reverted_actions = self.revert_actions(actions)
-            self.execute_actions(db, reverted_actions, strict=True)
+            # Perform 2 passes of up/down to make sure database is still
+            # upgradeable after being downgraded.
+            for testpass in range(1, 3):
+                log.info("PASS %s. Testing upgrade for %s" % (testpass, db))
+                self.execute_actions(db, actions, strict=True)
+
+                log.info("PASS %s. Testing downgrade for %s" % (testpass, db))
+                reverted_actions = self.revert_actions(actions)
+                self.execute_actions(db, reverted_actions, strict=True)
 
             log.info("Testing completed for %s" % db)
 
