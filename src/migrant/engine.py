@@ -49,6 +49,7 @@ class MigrantEngine(object):
 
     def initialized_dbs(self, conns):
         for db in conns:
+            log.info("Preparing migrations for %s" % db)
             migrations = self.backend.list_migrations(db)
             if not migrations:
                 latest_revid = self.pick_rev_id(None)
