@@ -138,7 +138,7 @@ class Repository(object):
         log.info("Script %s created" % fullfname)
         return revname
 
-    def _list_scripts(self, mode='id'):
+    def list_script_ids(self):
         """List scripts in right order
         """
         self.check_repo()
@@ -163,22 +163,9 @@ class Repository(object):
                             scriptname)
                 continue
 
-            if mode == 'id':
-                scripts.append(self.fname_to_revid(scriptname))
-            else:
-                scripts.append(scriptname[:-3])
+            scripts.append(self.fname_to_revid(scriptname))
 
         return scripts
-
-    def list_script_ids(self):
-        """List script IDs in right order
-        """
-        return self._list_scripts(mode='id')
-
-    def list_script_names(self):
-        """List script names in right order
-        """
-        return self._list_scripts(mode='name')
 
     def load_script(self, scriptid):
         self.check_repo()
