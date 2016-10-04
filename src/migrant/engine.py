@@ -121,9 +121,9 @@ class MigrantEngine(object):
         for action, revid in actions:
             script = self.repository.load_script(revid)
             if action == "+":
+                log.info("Upgrading to %s%s" % (
+                    script.name, " (not really)") if self.dry_run else '')
                 if not self.dry_run:
-                    log.info("Upgrading to %s" % script.name)
-
                     if strict:
                         script.test_before_up(db)
                     script.up(db)
@@ -133,7 +133,8 @@ class MigrantEngine(object):
                     self.backend.push_migration(db, script.name)
             else:
                 assert action == "-"
-                log.info("Reverting %s" % script.name)
+                log.info("Reverting %s%s" % (
+                    script.name, " (not really)" if self.dry_run else ''))
                 if not self.dry_run:
                     if strict:
                         script.test_before_down(db)
