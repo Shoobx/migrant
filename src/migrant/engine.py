@@ -93,8 +93,9 @@ class MigrantEngine(object):
         migrations = sorted(migrations, key=lambda m: script_idx[m])
 
         if not migrations:
-            log.error("Cannot upgrade: no common revision between "
-                      "repository and database")
+            log.warning("No common revision between repository and "
+                        "database %s. Running all migrations up to %s",
+                        db, target_revid)
             base_revid = 'INITIAL'
         else:
             base_revid = migrations[0]
