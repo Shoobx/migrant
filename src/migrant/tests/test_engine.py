@@ -46,6 +46,11 @@ class MigrantEngineTest(unittest.TestCase):
         actions = engine.calc_actions(None, "e")
         self.assertEqual(actions, [('+', 'c'), ('+', 'e')])
 
+    def test_calc_actions_nocommon(self):
+        engine = _make_engine(['a', 'b', 'c'], ['d', 'e'])
+        actions = engine.calc_actions(None, "e")
+        self.assertEqual(actions, [('+', 'd'), ('+', 'e')])
+
     def test_calc_actions_wrongorder_downgrade(self):
         engine = _make_engine(['e', 'd', 'b', 'a'], ['b', 'c', 'd', 'e'])
         actions = engine.calc_actions(None, "b")
