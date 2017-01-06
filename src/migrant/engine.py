@@ -18,6 +18,19 @@ class MigrantEngine(object):
         self.dry_run = dry_run
         self.config = config
 
+    def status(self, target_id=None):
+        """Return number of migration actions to be performed to
+        upgrade to target_id"""
+        target_id = self.pick_rev_id(target_id)
+        conns = self.backend.generate_connections()
+
+        total_actions = 0
+        for db in self.initialized_dbs(conns):
+            actions = self.calc_actions(db, target_id)
+            total_actions += len(actions)
+
+        return total_actions
+
     def update(self, target_id=None):
         target_id = self.pick_rev_id(target_id)
         conns = self.backend.generate_connections()

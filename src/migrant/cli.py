@@ -49,6 +49,18 @@ def cmd_test(args, cfg):
     engine.test(args.revision)
 
 
+def cmd_status(args, cfg):
+    cfg = get_db_config(cfg, args.database)
+    repo = create_repo(cfg)
+    backend = create_backend(cfg)
+    engine = MigrantEngine(backend, repo, cfg)
+    actions = engine.status()
+    if actions:
+        log.info("Pending actions: %s", actions)
+    else:
+        log.info("Up-to-date")
+
+
 parser = argparse.ArgumentParser(
     description='Database Migration Engine')
 parser.add_argument("database", help="Database name")
@@ -71,6 +83,12 @@ new_parser = commands.add_parser(
 new_parser.set_defaults(cmd=cmd_new)
 # new_parser.add_argument("database", help="Database name")
 new_parser.add_argument("title", help="Migration script title")
+
+# STATUS options
+status_parser = commands.add_parser(
+    "status",
+    help="Show the migration status")
+status_parser.set_defaults(cmd=cmd_status)
 
 # UPGRADE options
 upgrade_parser = commands.add_parser(

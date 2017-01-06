@@ -115,10 +115,29 @@ class UpgradeTest(unittest.TestCase):
         logging.root.addHandler(hdl)
         logging.root.setLevel(logging.INFO)
 
+    def test_status_dirty(self):
+        self.db0.migrations = ["aaaa_first"]
+
+        args = cli.parser.parse_args(["test", "status"])
+        cli.dispatch(args, self.cfg)
+
+        log = self.logstream.getvalue()
+        self.assertIn("Pending actions: 2", log)
+
+    def test_status_clean(self):
+        self.db0.migrations = ["aaaa_first", "bbbb_second", "cccc_third"]
+
+        args = cli.parser.parse_args(["test", "status"])
+        cli.dispatch(args, self.cfg)
+
+        log = self.logstream.getvalue()
+        self.assertIn("Up-to-date", log)
+
     def test_no_scripts(self):
         args = cli.parser.parse_args(["virgin", "upgrade"])
         cli.dispatch(args, self.cfg)
         self.assertEqual(self.db0.migrations, ['INITIAL'])
+
 
     def test_initial_upgrade(self):
         args = cli.parser.parse_args(["test", "upgrade"])
