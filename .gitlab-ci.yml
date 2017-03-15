@@ -8,7 +8,6 @@ cache:
     - ".cache"
 before_script:
   - if [[ "$(basename $(pwd))" != "migrant" ]]; then exit 10; fi  # stop us early if dirname is wrong
-  - pip install -r requirements.txt
   - apt-get update
 test:
   script:
