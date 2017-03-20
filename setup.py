@@ -12,7 +12,7 @@ def read_file(filename):
 
 setup(
     name="migrant",
-    version='0.7.4dev',
+    version='0.7.5dev',
     author="Shoobx, Inc.",
     author_email="dev@shoobx.com",
     description="Database Migration Engine",
