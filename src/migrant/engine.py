@@ -137,7 +137,7 @@ class MigrantEngine(object):
             script = self.repository.load_script(revid)
             if action == "+":
                 log.info("Upgrading to %s%s" % (
-                    script.name, " (not really)") if self.dry_run else '')
+                    script.name, " (not really)" if self.dry_run else ''))
                 if not self.dry_run:
                     if strict:
                         script.test_before_up(db)
