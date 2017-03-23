@@ -24,10 +24,10 @@ class RepositoryTest(unittest.TestCase):
     def test_create_list(self):
         repo = repository.Repository(self.dir)
         repo.init()
-        repo.new_script("Hello, World")
+        newrev = repo.new_script("Hello, World")
 
         revids = repo.list_script_ids()
-        self.assertEqual(revids, ['907d14'])
+        self.assertEqual(revids, [newrev.split('_')[0]])
 
     def test_is_valid_scriptname(self):
         repo = repository.Repository(self.dir)

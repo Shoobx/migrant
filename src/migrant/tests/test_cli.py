@@ -290,7 +290,7 @@ def test_new_initialized(sample_config):
     with open(get_scripts_filename(sample_config)) as slist:
         lines = slist.readlines()
         assert len(lines) == 3
-        assert lines[-1].strip() == "e0f428_first_script.py"
+        assert lines[-1].strip().endswith("_first_script.py")
 
 
 def test_new_subsequent(sample_config):
@@ -304,8 +304,8 @@ def test_new_subsequent(sample_config):
     with open(get_scripts_filename(sample_config)) as slist:
         lines = slist.readlines()
         assert len(lines) == 4
-        assert lines[-2].strip() == "e0f428_first_script.py"
-        assert lines[-1].strip() == "ad1b5b_second_script.py"
+        assert lines[-2].strip().endswith("_first_script.py")
+        assert lines[-1].strip().endswith("_second_script.py")
 
 
 def test_new_duplicate(sample_config):
@@ -335,4 +335,5 @@ def test_new_on_new_script(sample_config, migrant_backend):
     args = cli.parser.parse_args(["newdb", "new", "First script"])
     cli.dispatch(args, sample_config)
 
-    assert backend.new_scripts == ['e0f428_first_script']
+    assert len(backend.new_scripts) == 1
+    assert backend.new_scripts[0].endswith('_first_script')
