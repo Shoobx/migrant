@@ -114,7 +114,7 @@ class Repository(object):
         toreplace = string.punctuation + " "
         trmap = string.maketrans(toreplace, '_' * len(toreplace))
         name = title.lower().translate(trmap)
-        revid = hashlib.sha1(title).hexdigest()[:6]
+        revid = hashlib.sha1(self.directory + title).hexdigest()[:6]
         revname = "%s_%s" % (revid, name)
         fname = "%s.py" % revname
         fullfname = os.path.join(self.directory, fname)
