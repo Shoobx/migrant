@@ -25,4 +25,3 @@ jenkins-build: bin/py.test
 
 clean:
 	rm -rvf bin src/*.egg-info .installed.cfg parts .venv
-
