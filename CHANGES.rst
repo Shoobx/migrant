@@ -1,7 +1,7 @@
 CHANGELOG
 =========
 
-1.1.1 (unreleased)
+1.1.1 (2017-05-23)
 ------------------
 
 - Update README.rst badges.
