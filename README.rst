@@ -2,10 +2,6 @@
 Migrant
 =======
 
-.. image:: https://img.shields.io/pypi/v/migrant.svg
-    :target: https://pypi.python.org/pypi/migrant/
-    :alt: Latest Version
-
 .. image:: https://travis-ci.org/Shoobx/migrant.png?branch=master
    :target: https://travis-ci.org/Shoobx/migrant
 
