@@ -2,8 +2,8 @@
 Migrant
 =======
 
-.. image:: https://img.shields.io/pypi/v/zope.component.svg
-    :target: https://pypi.python.org/pypi/zope.component/
+.. image:: https://img.shields.io/pypi/v/migrant.svg
+    :target: https://pypi.python.org/pypi/migrant/
     :alt: Latest Version
 
 .. image:: https://travis-ci.org/Shoobx/migrant.png?branch=master
