@@ -1,7 +1,7 @@
 CHANGELOG
 =========
 
-1.1.0 (unreleased)
+1.1.0 (2017-05-23)
 ------------------
 
 - First public release using all public tools.
