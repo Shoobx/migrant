@@ -7,6 +7,7 @@ Migrant
 .. image:: https://github.com/Shoobx/migrant/badges/master/coverage.svg
     :alt: coverage report
 
+
 Migrant is a database schema version management framework
 
 Features include:
