@@ -1,15 +1,17 @@
-bin/
-develop-eggs/
-.venv/
-parts/
-.installed.cfg
-bootstrap.py
 .coverage
+.installed.cfg
+.tox
+.venv/
+bin/
+bootstrap.py
 coverage
-htmlcov
-tmp/
 coverage.xml
+develop-eggs/
+dist
+htmlcov
+parts/
 testresults.xml
+tmp/
 
 *.pyc
 src/*.egg-info

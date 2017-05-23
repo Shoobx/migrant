@@ -2,9 +2,9 @@
 Migrant
 =======
 
-.. image:: https://git.shoobx.com/shoobx/migrant/badges/master/build.svg
+.. image:: https://github.com/Shoobx/migrant/badges/master/build.svg
     :alt: build status
-.. image:: https://git.shoobx.com/shoobx/migrant/badges/master/coverage.svg
+.. image:: https://github.com/Shoobx/migrant/badges/master/coverage.svg
     :alt: coverage report
 
 Migrant is a database schema version management framework

@@ -1,10 +1,10 @@
 CHANGELOG
 =========
 
-1.0.1 (unreleased)
+1.1.0 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- First public release using all public tools.
 
 
 1.0.0 (2017-05-16)
