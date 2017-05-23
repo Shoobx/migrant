@@ -2,10 +2,12 @@
 Migrant
 =======
 
-.. image:: https://github.com/Shoobx/migrant/badges/master/build.svg
-    :alt: build status
-.. image:: https://github.com/Shoobx/migrant/badges/master/coverage.svg
-    :alt: coverage report
+.. image:: https://img.shields.io/pypi/v/zope.component.svg
+    :target: https://pypi.python.org/pypi/zope.component/
+    :alt: Latest Version
+
+.. image:: https://travis-ci.org/Shoobx/migrant.png?branch=master
+   :target: https://travis-ci.org/Shoobx/migrant
 
 
 Migrant is a database schema version management framework
