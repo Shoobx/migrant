@@ -1,10 +1,10 @@
 CHANGELOG
 =========
 
-1.1.2 (unreleased)
+1.2.0 (2018-02-06)
 ------------------
 
-- Nothing changed yet.
+- Python 3 compatibility.
 
 
 1.1.1 (2017-05-23)
