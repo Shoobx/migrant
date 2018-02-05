@@ -150,5 +150,5 @@ def main(args=sys.argv[1:]):
         cfg = load_config(args.config)
         setup_logging(args, cfg)
         dispatch(args, cfg)
-    except exceptions.MigrantException, e:
+    except exceptions.MigrantException as e:
         sys.exit("fatal: %s" % e)
