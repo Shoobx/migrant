@@ -40,6 +40,7 @@ setup(
     extras_require=dict(
         test=['coverage', 'mock'],),
     install_requires=[
+        'future',
         'setuptools'
     ],
     entry_points={

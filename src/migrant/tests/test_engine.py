@@ -3,6 +3,7 @@
 # Copyright 2014 by Shoobx, Inc.
 #
 ###############################################################################
+from builtins import object
 import unittest
 
 import mock

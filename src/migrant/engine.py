@@ -3,6 +3,8 @@
 # Copyright 2014 by Shoobx, Inc.
 #
 ###############################################################################
+from builtins import range
+from builtins import object
 import logging
 
 log = logging.getLogger(__name__)

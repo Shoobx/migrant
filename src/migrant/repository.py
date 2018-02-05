@@ -3,11 +3,17 @@
 # Copyright 2014 by Shoobx, Inc.
 #
 ###############################################################################
+from builtins import object
 import os
 import imp
 import logging
 import string
 import hashlib
+
+try:
+    from string import maketrans
+except ImportError:
+    maketrans = str.maketrans
 
 log = logging.getLogger(__name__)
 
@@ -112,7 +118,7 @@ class Repository(object):
         # Make name out of title
         title = title.strip()
         toreplace = string.punctuation + " "
-        trmap = string.maketrans(toreplace, '_' * len(toreplace))
+        trmap = maketrans(toreplace, u'_' * len(toreplace))
         name = title.lower().translate(trmap)
         revid = hashlib.sha1(self.directory + title).hexdigest()[:6]
         revname = "%s_%s" % (revid, name)
