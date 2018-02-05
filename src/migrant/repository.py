@@ -104,11 +104,11 @@ class Repository(object):
 
     def init(self):
         if not os.path.exists(self.directory):
-            log.info("Creating migrations directory %s" % self.directory)
+            log.info(u"Creating migrations directory %s" % self.directory)
             os.makedirs(self.directory)
 
         if not os.path.exists(self.scriptlist_fname):
-            log.info("Creating initial scripts.lst")
+            log.info(u"Creating initial scripts.lst")
             with open(self.scriptlist_fname, "w") as f:
                 f.write(INITIAL_SCRIPTLIST)
 
@@ -126,7 +126,7 @@ class Repository(object):
         fullfname = os.path.join(self.directory, fname)
 
         if os.path.exists(fullfname):
-            log.error("Script %s is already registered" % fname)
+            log.error(u"Script %s is already registered" % fname)
             raise exceptions.ScriptAlreadyExists()
 
         # Create script in repo
@@ -141,7 +141,7 @@ class Repository(object):
             lf.write(fname)
             lf.write("\n")
 
-        log.info("Script %s created" % fullfname)
+        log.info(u"Script %s created" % fullfname)
         return revname
 
     def list_script_ids(self):
@@ -165,7 +165,7 @@ class Repository(object):
                 continue
 
             if not self.is_valid_scriptname(scriptname):
-                log.warning("Ignoring unrecognized script name: %s" %
+                log.warning(u"Ignoring unrecognized script name: %s" %
                             scriptname)
                 continue
 

@@ -38,10 +38,10 @@ class MigrantEngine(object):
         conns = self.backend.generate_connections()
 
         for db in self.initialized_dbs(conns):
-            log.info("Starting migration for %s" % db)
+            log.info(u"Starting migration for %s" % db)
             actions = self.calc_actions(db, target_id)
             self.execute_actions(db, actions)
-            log.info("Migration completed for %s" % db)
+            log.info(u"Migration completed for %s" % db)
 
     def test(self, target_id=None):
         target_id = self.pick_rev_id(target_id)
@@ -53,18 +53,18 @@ class MigrantEngine(object):
             # Perform 2 passes of up/down to make sure database is still
             # upgradeable after being downgraded.
             for testpass in range(1, 3):
-                log.info("PASS %s. Testing upgrade for %s" % (testpass, db))
+                log.info(u"PASS %s. Testing upgrade for %s" % (testpass, db))
                 self.execute_actions(db, actions, strict=True)
 
-                log.info("PASS %s. Testing downgrade for %s" % (testpass, db))
+                log.info(u"PASS %s. Testing downgrade for %s" % (testpass, db))
                 reverted_actions = self.revert_actions(actions)
                 self.execute_actions(db, reverted_actions, strict=True)
 
-            log.info("Testing completed for %s" % db)
+            log.info(u"Testing completed for %s" % db)
 
     def initialized_dbs(self, conns):
         for db in conns:
-            log.info("Preparing migrations for %s" % db)
+            log.info(u"Preparing migrations for %s" % db)
             migrations = self.backend.list_migrations(db)
             if not migrations:
                 latest_revid = self.pick_rev_id(None)
@@ -81,7 +81,7 @@ class MigrantEngine(object):
                 sid = script.name
             self.backend.push_migration(db, sid)
 
-        log.info("Initializing migrations for %s. Assuming database is at %s" %
+        log.info(u"Initializing migrations for %s. Assuming database is at %s" %
                  (db, sid))
 
     def pick_rev_id(self, rev_id=None):
@@ -108,7 +108,7 @@ class MigrantEngine(object):
         migrations = sorted(migrations, key=lambda m: script_idx[m])
 
         if not migrations:
-            log.warning("No common revision between repository and "
+            log.warning(u"No common revision between repository and "
                         "database %s. Running all migrations up to %s",
                         db, target_revid)
             base_revid = 'INITIAL'
@@ -138,7 +138,7 @@ class MigrantEngine(object):
         for action, revid in actions:
             script = self.repository.load_script(revid)
             if action == "+":
-                log.info("Upgrading to %s%s" % (
+                log.info(u"Upgrading to %s%s" % (
                     script.name, " (not really)" if self.dry_run else ''))
                 if not self.dry_run:
                     if strict:
@@ -150,7 +150,7 @@ class MigrantEngine(object):
                     self.backend.push_migration(db, script.name)
             else:
                 assert action == "-"
-                log.info("Reverting %s%s" % (
+                log.info(u"Reverting %s%s" % (
                     script.name, " (not really)" if self.dry_run else ''))
                 if not self.dry_run:
                     if strict:

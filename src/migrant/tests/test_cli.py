@@ -25,7 +25,7 @@ from migrant import cli, backend, exceptions
 
 HERE = os.path.dirname(__file__)
 
-SAMPLE_CONFIG = """
+SAMPLE_CONFIG = u"""
 [db1]
 backend = mongo
 repository = repo/
@@ -36,13 +36,13 @@ backend = test
 repository = /repo
 """
 
-INTEGRATION_CONFIG = """
+INTEGRATION_CONFIG = u"""
 [test]
 backend = test
 repository = %s
 """ % os.path.join(HERE, 'scripts')
 
-INTEGRATION_CONFIG += """
+INTEGRATION_CONFIG += u"""
 [virgin]
 backend = test
 repository = %s
@@ -94,7 +94,7 @@ class MockedBackend(backend.MigrantBackend):
 class ConfigTest(unittest.TestCase):
     def test_get_db_config(self):
         cp = SafeConfigParser()
-        cp.readfp(io.BytesIO(SAMPLE_CONFIG), "SAMPLE_CONFIG")
+        cp.readfp(io.StringIO(SAMPLE_CONFIG), u"SAMPLE_CONFIG")
         config = cli.get_db_config(cp, "db1")
         self.assertEqual(config,
                          {'backend': 'mongo',
@@ -116,7 +116,7 @@ class UpgradeTest(unittest.TestCase):
 
         self.cfg = cli.load_config(self.migrant_ini)
 
-        self.logstream = io.BytesIO()
+        self.logstream = io.StringIO()
         hdl = logging.StreamHandler(self.logstream)
         hdl.setFormatter(logging.Formatter(logging.BASIC_FORMAT))
         logging.root.addHandler(hdl)
@@ -239,14 +239,14 @@ class InitTest(unittest.TestCase):
 
 @pytest.fixture
 def sample_config(tmpdir):
-    SAMPLE_CONFIG = textwrap.dedent("""
+    SAMPLE_CONFIG = textwrap.dedent(u"""
     [newdb]
     backend = noop
     repository = %s/repo
     """ % tmpdir)
 
     cfg = SafeConfigParser()
-    cfg.readfp(io.BytesIO(SAMPLE_CONFIG), "SAMPLE_CONFIG")
+    cfg.readfp(io.StringIO(SAMPLE_CONFIG), u"SAMPLE_CONFIG")
     return cfg
 
 

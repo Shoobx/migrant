@@ -61,9 +61,9 @@ def cmd_status(args, cfg):
     engine = MigrantEngine(backend, repo, cfg)
     actions = engine.status()
     if actions:
-        log.info("Pending actions: %s", actions)
+        log.info(u"Pending actions: %s", actions)
     else:
-        log.info("Up-to-date")
+        log.info(u"Up-to-date")
 
 
 parser = argparse.ArgumentParser(
