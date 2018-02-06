@@ -1,10 +1,10 @@
 CHANGELOG
 =========
 
-1.2.1 (unreleased)
+1.2.1 (2018-02-06)
 ------------------
 
-- Nothing changed yet.
+- Bugfix: proper error when `cmd` argument missing in Python 3
 
 
 1.2.0 (2018-02-06)
