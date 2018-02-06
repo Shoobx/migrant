@@ -261,6 +261,11 @@ def get_scripts_filename(cfg):
     return os.path.join(repodir, "scripts.lst")
 
 
+def test_missing_cmd():
+    with pytest.raises(SystemExit):
+        cli.parser.parse_args(["newdb"])
+
+
 def test_init(sample_config):
     args = cli.parser.parse_args(["newdb", "init"])
     cli.dispatch(args, sample_config)

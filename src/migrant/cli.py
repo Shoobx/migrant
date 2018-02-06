@@ -73,7 +73,8 @@ parser.add_argument("database", help="Database name")
 parser.add_argument("-c", "--config", default="migrant.ini",
                     help=("Config file to be used"))
 
-commands = parser.add_subparsers()
+commands = parser.add_subparsers(dest='cmd')
+commands.required = True
 
 # INIT options
 init_parser = commands.add_parser(
