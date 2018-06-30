@@ -14,6 +14,10 @@ Migrant
 .. image:: https://img.shields.io/pypi/pyversions/migrant.svg
     :target: https://pypi.python.org/pypi/migrant/
 
+.. image:: https://api.codeclimate.com/v1/badges/08342b65bdf96b761dcd/maintainability
+   :target: https://codeclimate.com/github/Shoobx/migrant/maintainability
+   :alt: Maintainability
+
 Migrant is a database schema version management framework
 
 Features include:
