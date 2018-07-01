@@ -137,28 +137,29 @@ class MigrantEngine(object):
     def execute_actions(self, db, actions, strict=False):
         for action, revid in actions:
             script = self.repository.load_script(revid)
+            assert action in ("+", "-")
             if action == "+":
-                log.info(u"Upgrading to %s%s" % (
-                    script.name, " (not really)" if self.dry_run else ''))
-                if not self.dry_run:
-                    if strict:
-                        script.test_before_up(db)
-                    script.up(db)
-                    if strict:
-                        script.test_after_up(db)
-
-                    self.backend.push_migration(db, script.name)
-            else:
-                assert action == "-"
-                log.info(u"Reverting %s%s" % (
-                    script.name, " (not really)" if self.dry_run else ''))
-                if not self.dry_run:
-                    if strict:
-                        script.test_before_down(db)
-                    script.down(db)
-                    if strict:
-                        script.test_after_down(db)
-                    self.backend.pop_migration(db, script.name)
+                after = script.test_after_up
+                before = script.test_before_up
+                during = script.up
+                end = self.backend.push_migration
+                infinitive = u"Upgrading"
+            elif action == "-":
+                after = script.test_after_down
+                before = script.test_before_down
+                during = script.down
+                end = self.backend.pop_migration
+                infinitive = u"Reverting"
+            log.info(
+                u"%s to %s%s", infinitive, script.name, " (not really)" if self.dry_run else ""
+            )
+            if not self.dry_run:
+                if strict:
+                    before(db)
+                during(db)
+                if strict:
+                    after(db)
+                end(db, script.name)
 
 
 def canonical_rev_id(migration_name):
