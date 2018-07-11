@@ -1,7 +1,7 @@
 CHANGELOG
 =========
 
-1.3.0 (unreleased)
+1.3.0 (2018-07-11)
 ------------------
 
 - Suppport for Python 3.6 and 3.7. Dropped Python 3.5.
