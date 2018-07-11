@@ -3,11 +3,6 @@
 # Copyright 2014 by Shoobx, Inc.
 #
 ###############################################################################
-from future import standard_library
-standard_library.install_aliases()
-
-from builtins import str
-from builtins import object
 import os
 import io
 import unittest
@@ -16,9 +11,7 @@ import shutil
 import textwrap
 import logging
 import pytest
-
-with standard_library.hooks():
-    from configparser import SafeConfigParser
+from configparser import SafeConfigParser
 
 from migrant import cli, backend, exceptions
 

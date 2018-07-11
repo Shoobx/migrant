@@ -1,10 +1,14 @@
 CHANGELOG
 =========
 
-1.2.2 (unreleased)
+1.3.0 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Suppport for Python 3.6 and 3.7. Dropped Python 3.5.
+
+- Fixed compatibility to not use `future`, since it imported `ConfigParser` as
+  `configparser` in Python 2.7. Instead the official `configparser` backport
+  is used.
 
 
 1.2.1 (2018-02-06)

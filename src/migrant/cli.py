@@ -3,16 +3,11 @@
 # Copyright 2014 by Shoobx, Inc.
 #
 ###############################################################################
-from future import standard_library
-standard_library.install_aliases()
-
 import os
 import sys
 import argparse
 import logging
-
-with standard_library.hooks():
-    from configparser import SafeConfigParser
+from configparser import SafeConfigParser
 
 from migrant import exceptions
 from migrant.engine import MigrantEngine

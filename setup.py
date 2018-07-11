@@ -12,7 +12,7 @@ def read_file(filename):
 
 setup(
     name="migrant",
-    version='1.2.2.dev0',
+    version='1.3.0.dev0',
     author="Shoobx, Inc.",
     author_email="dev@shoobx.com",
     description="Database Migration Engine",
@@ -29,7 +29,8 @@ setup(
         'Programming Language :: Python :: 2',
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: Implementation :: CPython',
         'Natural Language :: English',
         'Operating System :: OS Independent',
@@ -42,7 +43,7 @@ setup(
     extras_require=dict(
         test=['coverage', 'mock'],),
     install_requires=[
-        'future',
+        "configparser ; python_version<'3.0'",  # Py3 configparser backport.
         'setuptools'
     ],
     entry_points={
