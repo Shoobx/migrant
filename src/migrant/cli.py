@@ -133,7 +133,9 @@ def get_db_config(cfg, name):
 
 
 def setup_logging(args, cfg):
-    logging.basicConfig(level=logging.INFO)
+    FORMAT = "%(asctime)s %(levelname)s %(module)s - %(message)s"
+    logging.basicConfig(level=logging.INFO,
+                        format=FORMAT)
 
 
 def dispatch(args, cfg):
