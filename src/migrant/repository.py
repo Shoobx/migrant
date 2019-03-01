@@ -25,9 +25,7 @@ INITIAL_SCRIPTLIST = """
 """.lstrip()
 
 
-SCRIPT_TEMPLATE = """'''
-%(title)s
-'''
+SCRIPT_TEMPLATE = '''"""%(title)s"""
 
 
 def up(db):
@@ -57,7 +55,7 @@ def test_before_down(db):
 def test_after_down(db):
     pass
 
-""".lstrip()
+'''.lstrip()
 
 
 class Script(object):
