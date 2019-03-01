@@ -4,7 +4,7 @@ CHANGELOG
 1.3.1 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Updated the script template to make it lint friendly.
 
 
 1.3.0 (2018-07-11)
