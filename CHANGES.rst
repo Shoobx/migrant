@@ -1,7 +1,7 @@
 CHANGELOG
 =========
 
-1.3.1 (unreleased)
+1.3.1 (2019-03-01)
 ------------------
 
 - Updated the script template to make it lint friendly.
