@@ -27,7 +27,7 @@ class RepositoryTest(unittest.TestCase):
         newrev = repo.new_script("Hello, World")
 
         revids = repo.list_script_ids()
-        self.assertEqual(revids, [newrev.split('_')[0]])
+        self.assertEqual(revids, [newrev.split("_")[0]])
 
     def test_is_valid_scriptname(self):
         repo = repository.Repository(self.dir)
@@ -40,7 +40,8 @@ class RepositoryTest(unittest.TestCase):
         repo = repository.Repository(self.dir)
         repo.init()
 
-        SCRIPTSLST = textwrap.dedent("""
+        SCRIPTSLST = textwrap.dedent(
+            """
         # This is some Comment
 
         a24bc_first.py
@@ -50,9 +51,10 @@ class RepositoryTest(unittest.TestCase):
         ====
         1babe_third.py
         >>>> CONFLICT MARKER
-        """).lstrip()
+        """
+        ).lstrip()
         with open(self.slistfname, "w") as lf:
             lf.write(SCRIPTSLST)
 
         revids = repo.list_script_ids()
-        self.assertEqual(revids, ['a24bc', 'd724a', '1babe'])
+        self.assertEqual(revids, ["a24bc", "d724a", "1babe"])

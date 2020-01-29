@@ -12,7 +12,7 @@ from migrant import exceptions
 log = logging.getLogger(__name__)
 
 
-class MigrantBackend(object):
+class MigrantBackend:
     """Base interface for backend implementations"""
 
     def list_migrations(self, db):
@@ -69,14 +69,14 @@ class NoopBackend(MigrantBackend):
 
 
 def create_backend(cfg):
-    name = cfg['backend']
+    name = cfg["backend"]
 
     factory = get_backend(name)
     return factory(cfg)
 
 
 def get_backend(name):
-    backends = list(pkg_resources.iter_entry_points('migrant', name))
+    backends = list(pkg_resources.iter_entry_points("migrant", name))
     if not backends:
         raise exceptions.BackendNotRegistered(name)
     if len(backends) > 1:
