@@ -121,28 +121,28 @@ class MigrantEngineTest(unittest.TestCase):
         ]
 
 
-class ScriptMock(object):
+class ScriptMock:
     def __init__(self, name, log):
         self.name = name
         self.log = log
 
     def up(self, db):
-        self.log.append("%s %s up" % (db, self.name))
+        self.log.append(f"{db} {self.name} up")
 
     def down(self, db):
-        self.log.append("%s %s down" % (db, self.name))
+        self.log.append(f"{db} {self.name} down")
 
     def test_before_up(self, db):
-        self.log.append("%s %s before up" % (db, self.name))
+        self.log.append(f"{db} {self.name} before up")
 
     def test_after_up(self, db):
-        self.log.append("%s %s after up" % (db, self.name))
+        self.log.append(f"{db} {self.name} after up")
 
     def test_before_down(self, db):
-        self.log.append("%s %s before down" % (db, self.name))
+        self.log.append(f"{db} {self.name} before down")
 
     def test_after_down(self, db):
-        self.log.append("%s %s after down" % (db, self.name))
+        self.log.append(f"{db} {self.name} after down")
 
 
 def _make_engine(migrations, scripts, log=None):

@@ -56,9 +56,9 @@ def cmd_status(args, cfg):
     engine = MigrantEngine(backend, repo, cfg)
     actions = engine.status()
     if actions:
-        log.info(u"Pending actions: %s", actions)
+        log.info("Pending actions: %s", actions)
     else:
-        log.info(u"Up-to-date")
+        log.info("Up-to-date")
 
 
 parser = argparse.ArgumentParser(description="Database Migration Engine")
@@ -132,7 +132,7 @@ def get_db_config(cfg, name):
     if not cfg.has_section(name):
         ava = ", ".join(cfg.sections())
         raise exceptions.ConfigurationError(
-            "No database %s in migrant.ini, available names: %s" % (name, ava)
+            f"No database {name} in migrant.ini, available names: {ava}"
         )
     return dict(cfg.items(name))
 

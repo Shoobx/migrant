@@ -12,7 +12,7 @@ from migrant import exceptions
 log = logging.getLogger(__name__)
 
 
-class MigrantBackend(object):
+class MigrantBackend:
     """Base interface for backend implementations"""
 
     def list_migrations(self, db):

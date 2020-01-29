@@ -10,7 +10,7 @@ log = logging.getLogger(__name__)
 from migrant import exceptions
 
 
-class MigrantEngine(object):
+class MigrantEngine:
     def __init__(self, backend, repository, config, dry_run=False):
         self.backend = backend
         self.repository = repository
@@ -36,10 +36,10 @@ class MigrantEngine(object):
         conns = self.backend.generate_connections()
 
         for db in self.initialized_dbs(conns):
-            log.info(u"Starting migration for %s" % db)
+            log.info("Starting migration for %s" % db)
             actions = self.calc_actions(db, target_id)
             self.execute_actions(db, actions)
-            log.info(u"Migration completed for %s" % db)
+            log.info("Migration completed for %s" % db)
 
     def test(self, target_id=None):
         target_id = self.pick_rev_id(target_id)
@@ -51,18 +51,18 @@ class MigrantEngine(object):
             # Perform 2 passes of up/down to make sure database is still
             # upgradeable after being downgraded.
             for testpass in range(1, 3):
-                log.info(u"PASS %s. Testing upgrade for %s" % (testpass, db))
+                log.info(f"PASS {testpass}. Testing upgrade for {db}")
                 self.execute_actions(db, actions, strict=True)
 
-                log.info(u"PASS %s. Testing downgrade for %s" % (testpass, db))
+                log.info(f"PASS {testpass}. Testing downgrade for {db}")
                 reverted_actions = self.revert_actions(actions)
                 self.execute_actions(db, reverted_actions, strict=True)
 
-            log.info(u"Testing completed for %s" % db)
+            log.info("Testing completed for %s" % db)
 
     def initialized_dbs(self, conns):
         for db in conns:
-            log.info(u"Preparing migrations for %s" % db)
+            log.info("Preparing migrations for %s" % db)
             migrations = self.backend.list_migrations(db)
             if not migrations:
                 latest_revid = self.pick_rev_id(None)
@@ -79,9 +79,7 @@ class MigrantEngine(object):
                 sid = script.name
             self.backend.push_migration(db, sid)
 
-        log.info(
-            u"Initializing migrations for %s. Assuming database is at %s" % (db, sid)
-        )
+        log.info(f"Initializing migrations for {db}. Assuming database is at {sid}")
 
     def pick_rev_id(self, rev_id=None):
         if rev_id is None:
@@ -108,7 +106,7 @@ class MigrantEngine(object):
 
         if not migrations:
             log.warning(
-                u"No common revision between repository and "
+                "No common revision between repository and "
                 "database %s. Running all migrations up to %s",
                 db,
                 target_revid,
@@ -144,15 +142,15 @@ class MigrantEngine(object):
                 before = script.test_before_up
                 during = script.up
                 end = self.backend.push_migration
-                infinitive = u"Upgrading"
+                infinitive = "Upgrading"
             elif action == "-":
                 after = script.test_after_down
                 before = script.test_before_down
                 during = script.down
                 end = self.backend.pop_migration
-                infinitive = u"Reverting"
+                infinitive = "Reverting"
             log.info(
-                u"%s to %s%s",
+                "%s to %s%s",
                 infinitive,
                 script.name,
                 " (not really)" if self.dry_run else "",

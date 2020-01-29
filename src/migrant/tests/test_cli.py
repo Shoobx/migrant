@@ -18,7 +18,7 @@ from migrant import cli, backend, exceptions
 
 HERE = os.path.dirname(__file__)
 
-SAMPLE_CONFIG = u"""
+SAMPLE_CONFIG = """
 [db1]
 backend = mongo
 repository = repo/
@@ -29,7 +29,7 @@ backend = test
 repository = /repo
 """
 
-INTEGRATION_CONFIG = u"""
+INTEGRATION_CONFIG = """
 [test]
 backend = test
 repository = %s
@@ -37,7 +37,7 @@ repository = %s
     HERE, "scripts"
 )
 
-INTEGRATION_CONFIG += u"""
+INTEGRATION_CONFIG += """
 [virgin]
 backend = test
 repository = %s
@@ -46,7 +46,7 @@ repository = %s
 )
 
 
-class MockedDb(object):
+class MockedDb:
     def __init__(self, name):
         self.name = name
         self.migrations = []
@@ -71,8 +71,7 @@ class MockedBackend(backend.MigrantBackend):
     def generate_connections(self):
         """Generate connections to process
         """
-        for db in self.dbs:
-            yield db
+        yield from self.dbs
 
     def generate_test_connections(self):
         return self.generate_connections()
@@ -91,7 +90,7 @@ class MockedBackend(backend.MigrantBackend):
 class ConfigTest(unittest.TestCase):
     def test_get_db_config(self):
         cp = SafeConfigParser()
-        cp.readfp(io.StringIO(SAMPLE_CONFIG), u"SAMPLE_CONFIG")
+        cp.readfp(io.StringIO(SAMPLE_CONFIG), "SAMPLE_CONFIG")
         config = cli.get_db_config(cp, "db1")
         self.assertEqual(
             config,
@@ -236,7 +235,7 @@ class InitTest(unittest.TestCase):
 @pytest.fixture
 def sample_config(tmpdir):
     SAMPLE_CONFIG = textwrap.dedent(
-        u"""
+        """
     [newdb]
     backend = noop
     repository = %s/repo
@@ -245,7 +244,7 @@ def sample_config(tmpdir):
     )
 
     cfg = SafeConfigParser()
-    cfg.readfp(io.StringIO(SAMPLE_CONFIG), u"SAMPLE_CONFIG")
+    cfg.readfp(io.StringIO(SAMPLE_CONFIG), "SAMPLE_CONFIG")
     return cfg
 
 

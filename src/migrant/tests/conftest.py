@@ -15,7 +15,7 @@ def migrant_backend():
     """Fixture to set up backend
     """
 
-    class BackendSetter(object):
+    class BackendSetter:
         def __init__(self, mocked_get_backend):
             self.mocked_get_backend = mocked_get_backend
 
