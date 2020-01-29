@@ -79,8 +79,9 @@ class MigrantEngine(object):
                 sid = script.name
             self.backend.push_migration(db, sid)
 
-        log.info(u"Initializing migrations for %s. Assuming database is at %s" %
-                 (db, sid))
+        log.info(
+            u"Initializing migrations for %s. Assuming database is at %s" % (db, sid)
+        )
 
     def pick_rev_id(self, rev_id=None):
         if rev_id is None:
@@ -106,31 +107,33 @@ class MigrantEngine(object):
         migrations = sorted(migrations, key=lambda m: script_idx[m])
 
         if not migrations:
-            log.warning(u"No common revision between repository and "
-                        "database %s. Running all migrations up to %s",
-                        db, target_revid)
-            base_revid = 'INITIAL'
+            log.warning(
+                u"No common revision between repository and "
+                "database %s. Running all migrations up to %s",
+                db,
+                target_revid,
+            )
+            base_revid = "INITIAL"
         else:
             base_revid = migrations[0]
 
         base_idx = script_idx[base_revid]
         target_idx = script_idx[target_revid]
 
-        toremove = [m for m in reversed(migrations)
-                    if script_idx[m] > target_idx]
-        toadd = [s for s in self.script_ids
-                 if base_idx < script_idx[s] <= target_idx
-                 and s not in migrations]
-        return [('-', rid) for rid in toremove] + [('+', rid) for rid in toadd]
+        toremove = [m for m in reversed(migrations) if script_idx[m] > target_idx]
+        toadd = [
+            s
+            for s in self.script_ids
+            if base_idx < script_idx[s] <= target_idx and s not in migrations
+        ]
+        return [("-", rid) for rid in toremove] + [("+", rid) for rid in toadd]
 
     def revert_actions(self, actions):
-        reverts = [("+" if a == "-" else "-", script)
-                   for a, script in actions]
+        reverts = [("+" if a == "-" else "-", script) for a, script in actions]
         return list(reversed(reverts))
 
     def list_backend_migrations(self, db):
-        return [canonical_rev_id(revid)
-                for revid in self.backend.list_migrations(db)]
+        return [canonical_rev_id(revid) for revid in self.backend.list_migrations(db)]
 
     def execute_actions(self, db, actions, strict=False):
         for action, revid in actions:
@@ -149,7 +152,10 @@ class MigrantEngine(object):
                 end = self.backend.pop_migration
                 infinitive = u"Reverting"
             log.info(
-                u"%s to %s%s", infinitive, script.name, " (not really)" if self.dry_run else ""
+                u"%s to %s%s",
+                infinitive,
+                script.name,
+                " (not really)" if self.dry_run else "",
             )
             if not self.dry_run:
                 if strict:

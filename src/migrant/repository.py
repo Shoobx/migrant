@@ -86,7 +86,7 @@ class Script(object):
         self._exec("test_after_down", db)
 
     def _exec(self, method, *args, **kwargs):
-        __traceback_info__= (args, kwargs)
+        __traceback_info__ = (args, kwargs)
         if not hasattr(self.module, method):
             return
 
@@ -94,7 +94,6 @@ class Script(object):
 
 
 class Repository(object):
-
     def __init__(self, directory):
         self.directory = directory
         self.scriptlist_fname = os.path.join(self.directory, "scripts.lst")
@@ -115,9 +114,9 @@ class Repository(object):
         # Make name out of title
         title = title.strip()
         toreplace = string.punctuation + " "
-        trmap = maketrans(toreplace, u'_' * len(toreplace))
+        trmap = maketrans(toreplace, u"_" * len(toreplace))
         name = title.lower().translate(trmap)
-        revid = hashlib.sha1((self.directory + title).encode('utf-8')).hexdigest()[:6]
+        revid = hashlib.sha1((self.directory + title).encode("utf-8")).hexdigest()[:6]
         revname = "%s_%s" % (revid, name)
         fname = "%s.py" % revname
         fullfname = os.path.join(self.directory, fname)
@@ -128,9 +127,7 @@ class Repository(object):
 
         # Create script in repo
         with open(fullfname, "w") as sf:
-            ns = {
-                "title": title
-            }
+            ns = {"title": title}
             sf.write(SCRIPT_TEMPLATE % ns)
 
         # Register script in list
@@ -149,7 +146,7 @@ class Repository(object):
         if not os.path.exists(self.scriptlist_fname):
             return []
 
-        with open(self.scriptlist_fname, 'r') as f:
+        with open(self.scriptlist_fname, "r") as f:
             contents = f.readlines()
 
         scripts = []
@@ -162,8 +159,7 @@ class Repository(object):
                 continue
 
             if not self.is_valid_scriptname(scriptname):
-                log.warning(u"Ignoring unrecognized script name: %s" %
-                            scriptname)
+                log.warning(u"Ignoring unrecognized script name: %s" % scriptname)
                 continue
 
             scripts.append(self.fname_to_revid(scriptname))
@@ -198,4 +194,4 @@ class Repository(object):
 
 
 def create_repo(cfg):
-    return Repository(cfg['repository'])
+    return Repository(cfg["repository"])

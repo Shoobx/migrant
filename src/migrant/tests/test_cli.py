@@ -33,13 +33,17 @@ INTEGRATION_CONFIG = u"""
 [test]
 backend = test
 repository = %s
-""" % os.path.join(HERE, 'scripts')
+""" % os.path.join(
+    HERE, "scripts"
+)
 
 INTEGRATION_CONFIG += u"""
 [virgin]
 backend = test
 repository = %s
-""" % os.path.join(HERE, 'noscripts')
+""" % os.path.join(
+    HERE, "noscripts"
+)
 
 
 class MockedDb(object):
@@ -89,11 +93,14 @@ class ConfigTest(unittest.TestCase):
         cp = SafeConfigParser()
         cp.readfp(io.StringIO(SAMPLE_CONFIG), u"SAMPLE_CONFIG")
         config = cli.get_db_config(cp, "db1")
-        self.assertEqual(config,
-                         {'backend': 'mongo',
-                          'backend_uri': 'localhost:27017/acme',
-                          'repository': 'repo/'})
-
+        self.assertEqual(
+            config,
+            {
+                "backend": "mongo",
+                "backend_uri": "localhost:27017/acme",
+                "repository": "repo/",
+            },
+        )
 
 
 class UpgradeTest(unittest.TestCase):
@@ -136,15 +143,15 @@ class UpgradeTest(unittest.TestCase):
     def test_no_scripts(self):
         args = cli.parser.parse_args(["virgin", "upgrade"])
         cli.dispatch(args, self.cfg)
-        self.assertEqual(self.db0.migrations, ['INITIAL'])
-
+        self.assertEqual(self.db0.migrations, ["INITIAL"])
 
     def test_initial_upgrade(self):
         args = cli.parser.parse_args(["test", "upgrade"])
         cli.dispatch(args, self.cfg)
 
-        self.assertEqual(self.db0.migrations,
-                         ['INITIAL', 'aaaa_first', 'bbbb_second', 'cccc_third'])
+        self.assertEqual(
+            self.db0.migrations, ["INITIAL", "aaaa_first", "bbbb_second", "cccc_third"]
+        )
 
     def test_subsequent_emtpy_upgrade(self):
         args = cli.parser.parse_args(["test", "upgrade"])
@@ -152,8 +159,9 @@ class UpgradeTest(unittest.TestCase):
         # this should be a noop
         cli.dispatch(args, self.cfg)
 
-        self.assertEqual(self.db0.migrations,
-                         ['INITIAL', 'aaaa_first', 'bbbb_second', 'cccc_third'])
+        self.assertEqual(
+            self.db0.migrations, ["INITIAL", "aaaa_first", "bbbb_second", "cccc_third"]
+        )
 
     def test_upgrade_latest(self):
         self.db0.migrations = ["aaaa_first"]
@@ -161,42 +169,38 @@ class UpgradeTest(unittest.TestCase):
         args = cli.parser.parse_args(["test", "upgrade"])
         cli.dispatch(args, self.cfg)
 
-        self.assertEqual(self.db0.migrations,
-                         ['aaaa_first', 'bbbb_second', 'cccc_third'])
-        self.assertEqual(self.db0.data, {'hello': 'world', 'value': 'c'})
+        self.assertEqual(
+            self.db0.migrations, ["aaaa_first", "bbbb_second", "cccc_third"]
+        )
+        self.assertEqual(self.db0.data, {"hello": "world", "value": "c"})
 
     def test_upgrade_particular(self):
         self.db0.migrations = ["aaaa_first"]
 
-        args = cli.parser.parse_args(
-            ["test", "upgrade", "--revision", "bbbb_second"])
+        args = cli.parser.parse_args(["test", "upgrade", "--revision", "bbbb_second"])
         cli.dispatch(args, self.cfg)
 
-        self.assertEqual(self.db0.migrations, ['aaaa_first', 'bbbb_second'])
-        self.assertEqual(self.db0.data, {'value': 'b'})
+        self.assertEqual(self.db0.migrations, ["aaaa_first", "bbbb_second"])
+        self.assertEqual(self.db0.data, {"value": "b"})
 
     def test_downgrade(self):
-        self.db0.migrations = ["INITIAL", "aaaa_first",
-                               "bbbb_second", "cccc_third"]
-        self.db0.data = {'hello': 'world', 'value': 'c'}
+        self.db0.migrations = ["INITIAL", "aaaa_first", "bbbb_second", "cccc_third"]
+        self.db0.data = {"hello": "world", "value": "c"}
 
-        args = cli.parser.parse_args(["test", "upgrade",
-                                      "--revision", "aaaa_first"])
+        args = cli.parser.parse_args(["test", "upgrade", "--revision", "aaaa_first"])
         cli.dispatch(args, self.cfg)
 
-        self.assertEqual(self.db0.migrations, ['INITIAL', 'aaaa_first'])
-        self.assertEqual(self.db0.data, {'value': 'a'})
+        self.assertEqual(self.db0.migrations, ["INITIAL", "aaaa_first"])
+        self.assertEqual(self.db0.data, {"value": "a"})
 
     def test_downgrade_to_initial(self):
-        self.db0.migrations = ["INITIAL", "aaaa_first",
-                               "bbbb_second", "cccc_third"]
-        self.db0.data = {'hello': 'world', 'value': 'c'}
+        self.db0.migrations = ["INITIAL", "aaaa_first", "bbbb_second", "cccc_third"]
+        self.db0.data = {"hello": "world", "value": "c"}
 
-        args = cli.parser.parse_args(["test", "upgrade",
-                                     "--revision", "INITIAL"])
+        args = cli.parser.parse_args(["test", "upgrade", "--revision", "INITIAL"])
         cli.dispatch(args, self.cfg)
 
-        self.assertEqual(self.db0.migrations, ['INITIAL'])
+        self.assertEqual(self.db0.migrations, ["INITIAL"])
         self.assertEqual(self.db0.data, {})
 
     def test_dry_run_upgrade(self):
@@ -206,13 +210,12 @@ class UpgradeTest(unittest.TestCase):
         args = cli.parser.parse_args(["test", "upgrade", "--dry-run"])
         cli.dispatch(args, self.cfg)
 
-        self.assertEqual(self.db0.migrations, ['aaaa_first'])
-        self.assertEqual(self.db0.data, {'value': 'a'})
+        self.assertEqual(self.db0.migrations, ["aaaa_first"])
+        self.assertEqual(self.db0.data, {"value": "a"})
 
     def test_test(self):
-        self.db0.migrations = ["INITIAL", "aaaa_first",
-                               "bbbb_second", "cccc_third"]
-        self.db0.data = {'hello': 'world', 'value': 'c'}
+        self.db0.migrations = ["INITIAL", "aaaa_first", "bbbb_second", "cccc_third"]
+        self.db0.data = {"hello": "world", "value": "c"}
 
         cli.main(["-c", self.migrant_ini, "test", "test"])
 
@@ -232,11 +235,14 @@ class InitTest(unittest.TestCase):
 
 @pytest.fixture
 def sample_config(tmpdir):
-    SAMPLE_CONFIG = textwrap.dedent(u"""
+    SAMPLE_CONFIG = textwrap.dedent(
+        u"""
     [newdb]
     backend = noop
     repository = %s/repo
-    """ % tmpdir)
+    """
+        % tmpdir
+    )
 
     cfg = SafeConfigParser()
     cfg.readfp(io.StringIO(SAMPLE_CONFIG), u"SAMPLE_CONFIG")
@@ -341,4 +347,4 @@ def test_new_on_new_script(sample_config, migrant_backend):
     cli.dispatch(args, sample_config)
 
     assert len(backend.new_scripts) == 1
-    assert backend.new_scripts[0].endswith('_first_script')
+    assert backend.new_scripts[0].endswith("_first_script")

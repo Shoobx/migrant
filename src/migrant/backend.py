@@ -69,14 +69,14 @@ class NoopBackend(MigrantBackend):
 
 
 def create_backend(cfg):
-    name = cfg['backend']
+    name = cfg["backend"]
 
     factory = get_backend(name)
     return factory(cfg)
 
 
 def get_backend(name):
-    backends = list(pkg_resources.iter_entry_points('migrant', name))
+    backends = list(pkg_resources.iter_entry_points("migrant", name))
     if not backends:
         raise exceptions.BackendNotRegistered(name)
     if len(backends) > 1:
