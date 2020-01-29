@@ -1,0 +1,36 @@
+---
+# https://pre-commit.com
+default_language_version: {python: python3}
+minimum_pre_commit_version: "1.15"
+
+# if adding/removing a repo, be sure to run `docker/pre_commit/update.py`
+# to keep the docker test image up to date.
+
+repos:
+  - repo: https://github.com/asottile/pyupgrade
+    rev: v1.26.2
+    hooks:
+      - id: pyupgrade
+        args: ["--py36-plus"]
+
+  - repo: https://github.com/psf/black
+    rev: 19.10b0
+    hooks:
+      - id: black
+  # checks for pre-commit config
+  - repo: meta
+    hooks:
+      - id: check-hooks-apply
+      - id: check-useless-excludes
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v2.4.0
+    hooks:
+      - id: check-added-large-files
+        args: ["--maxkb=1024"]
+      - id: check-merge-conflict
+      - id: check-yaml
+        args: ["--unsafe"]
+      - id: debug-statements
+      - id: detect-private-key
+      - id: forbid-new-submodules
+      - id: trailing-whitespace
