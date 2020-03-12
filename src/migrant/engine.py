@@ -7,8 +7,6 @@ import logging
 import multiprocessing
 
 log = logging.getLogger(__name__)
-logger = multiprocessing.log_to_stderr()
-logger.setLevel(logging.WARNING)
 
 
 from migrant import exceptions
@@ -44,7 +42,7 @@ class MigrantEngine:
     def update(self, target_id=None):
         target_id = self.pick_rev_id(target_id)
         conns = self.backend.generate_connections()
-        with Pool() as pool:
+        with multiprocessing.Pool() as pool:
             pool.imap_unordered(self._update, ((db, target_id) for db in self.initialized_dbs(conns)))
 
     def test(self, target_id=None):
