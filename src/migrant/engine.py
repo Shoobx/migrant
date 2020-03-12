@@ -4,8 +4,12 @@
 #
 ###############################################################################
 import logging
+import multiprocessing
 
 log = logging.getLogger(__name__)
+logger = multiprocessing.log_to_stderr()
+logger.setLevel(logging.WARNING)
+
 
 from migrant import exceptions
 
@@ -31,15 +35,17 @@ class MigrantEngine:
 
         return total_actions
 
+    def _update(self, db, target_id=None):
+        log.info("Starting migration for %s" % db)
+        actions = self.calc_actions(db, target_id)
+        self.execute_actions(db, actions)
+        log.info("Migration completed for %s" % db)
+
     def update(self, target_id=None):
         target_id = self.pick_rev_id(target_id)
         conns = self.backend.generate_connections()
-
-        for db in self.initialized_dbs(conns):
-            log.info("Starting migration for %s" % db)
-            actions = self.calc_actions(db, target_id)
-            self.execute_actions(db, actions)
-            log.info("Migration completed for %s" % db)
+        with Pool() as pool:
+            pool.imap_unordered(self._update, ((db, target_id) for db in self.initialized_dbs(conns)))
 
     def test(self, target_id=None):
         target_id = self.pick_rev_id(target_id)
