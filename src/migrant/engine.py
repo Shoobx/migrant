@@ -5,6 +5,7 @@
 ###############################################################################
 import logging
 import multiprocessing
+import functools
 
 log = logging.getLogger(__name__)
 
@@ -42,8 +43,10 @@ class MigrantEngine:
     def update(self, target_id=None):
         target_id = self.pick_rev_id(target_id)
         conns = self.backend.generate_connections()
+        f = functools.partial(self._update, target_id=target_id)
+
         with multiprocessing.Pool() as pool:
-            pool.imap_unordered(self._update, ((db, target_id) for db in self.initialized_dbs(conns)))
+            pool.map(f, self.initialized_dbs(conns))
 
     def test(self, target_id=None):
         target_id = self.pick_rev_id(target_id)
