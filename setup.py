@@ -38,7 +38,7 @@ setup(
     zip_safe=False,
     extras_require=dict(test=["coverage", "mock"],),
     install_requires=[
-        "configparser ; python_version<'3.0'",  # Py3 configparser backport.
+        "configparser",
         "setuptools",
     ],
     entry_points={

@@ -7,7 +7,7 @@ import os
 import sys
 import argparse
 import logging
-from configparser import SafeConfigParser
+from configparser import ConfigParser
 
 from migrant import exceptions
 from migrant.engine import MigrantEngine
@@ -122,9 +122,9 @@ test_parser.add_argument(
 def load_config(fname):
     if not os.path.exists(fname):
         raise exceptions.ConfigurationError("%s is missing" % fname)
-    cfg = SafeConfigParser()
+    cfg = ConfigParser()
     with open(fname) as cfgfp:
-        cfg.readfp(cfgfp)
+        cfg.read_file(cfgfp)
     return cfg
 
 
