@@ -3,6 +3,7 @@
 # Copyright 2014 by Shoobx, Inc.
 #
 ###############################################################################
+from typing import List
 import os
 import logging
 import string
@@ -54,8 +55,8 @@ def test_after_down(db):
 
 
 class Script:
-    rev_id = None
-    name = None
+    rev_id: str
+    name: str
 
     def __init__(self, filename):
         assert filename.endswith(".py")
@@ -89,6 +90,17 @@ class Script:
 
 
 class Repository:
+    def new_script(self, title: str) -> str:
+        raise NotImplementedError()
+
+    def list_script_ids(self) -> List[str]:
+        raise NotImplementedError()
+
+    def load_script(self, scriptid: str) -> Script:
+        raise NotImplementedError()
+
+
+class DirectoryRepository(Repository):
     def __init__(self, directory):
         self.directory = directory
         self.scriptlist_fname = os.path.join(self.directory, "scripts.lst")
@@ -189,4 +201,4 @@ class Repository:
 
 
 def create_repo(cfg):
-    return Repository(cfg["repository"])
+    return DirectoryRepository(cfg["repository"])

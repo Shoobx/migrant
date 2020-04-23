@@ -22,7 +22,7 @@ class RepositoryTest(unittest.TestCase):
         shutil.rmtree(self.dir)
 
     def test_create_list(self):
-        repo = repository.Repository(self.dir)
+        repo = repository.DirectoryRepository(self.dir)
         repo.init()
         newrev = repo.new_script("Hello, World")
 
@@ -30,14 +30,14 @@ class RepositoryTest(unittest.TestCase):
         self.assertEqual(revids, [newrev.split("_")[0]])
 
     def test_is_valid_scriptname(self):
-        repo = repository.Repository(self.dir)
+        repo = repository.DirectoryRepository(self.dir)
         self.assertTrue(repo.is_valid_scriptname("xxxx_hello.py"))
         self.assertFalse(repo.is_valid_scriptname("hello.py"))
         self.assertFalse(repo.is_valid_scriptname("# Some Comment"))
         self.assertFalse(repo.is_valid_scriptname("# Some_Comment"))
 
     def test_weird_list(self):
-        repo = repository.Repository(self.dir)
+        repo = repository.DirectoryRepository(self.dir)
         repo.init()
 
         SCRIPTSLST = textwrap.dedent(
