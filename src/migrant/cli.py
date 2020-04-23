@@ -5,7 +5,7 @@
 ###############################################################################
 import os
 import sys
-import argparse
+import click
 import logging
 from configparser import ConfigParser
 
@@ -14,43 +14,96 @@ from migrant.engine import MigrantEngine
 from migrant.backend import create_backend
 from migrant.repository import create_repo
 
+#FORMAT = "%(asctime)s %(levelname)s %(module)s - %(message)s"
+#logging.basicConfig(level=logging.INFO, format=FORMAT)
 log = logging.getLogger(__name__)
 
 
-def cmd_init(args, cfg):
-    cfg = get_db_config(cfg, args.database)
+@click.group()
+@click.option(
+    "-c",
+    "--config",
+    default="migrant.ini",
+    help="Config file to be used",
+    required=True,
+    type=click.Path(exists=True),
+)
+@click.argument("database")
+@click.pass_context
+def cli(ctx, **kwargs):
+    ctx.obj = kwargs
+    ctx.obj["cfg"] = load_config(ctx.obj["config"])
+
+
+@cli.command("init")
+@click.pass_obj
+def cmd_init(obj):
+    """Initialize migration script repository"""
+    cfg = get_db_config(obj["cfg"], obj["database"])
     repo = create_repo(cfg)
     repo.init()
     backend = create_backend(cfg)
     backend.on_repo_init()
 
 
-def cmd_new(args, cfg):
-    cfg = get_db_config(cfg, args.database)
+@cli.command("new")
+@click.option("--title", help="Migration script title")
+@click.pass_obj
+def cmd_new(obj, title):
+    """Create new migration script, add a script title argument!"""
+    obj["title"] = title
+    cfg = get_db_config(obj["cfg"], obj["database"])
     repo = create_repo(cfg)
-    revname = repo.new_script(args.title)
+    revname = repo.new_script(obj["title"])
     backend = create_backend(cfg)
     backend.on_new_script(revname)
 
 
-def cmd_upgrade(args, cfg):
-    cfg = get_db_config(cfg, args.database)
+@cli.command("upgrade")
+@click.option(
+    "-n",
+    "--dry-run",
+    help="do not execute scripts, only show what is going to be executed.",
+    is_flag=True,
+)
+@click.option(
+    "-r",
+    "--revision",
+    help="Revision to upgrade to. If not specified, latest revision will be used",
+)
+@click.pass_obj
+def cmd_upgrade(obj, dry_run, revision):
+    """Perform upgrade"""
+    obj["dry_run"] = dry_run
+    obj["revision"] = revision
+    cfg = get_db_config(obj["cfg"], obj["database"])
     repo = create_repo(cfg)
     backend = create_backend(cfg)
-    engine = MigrantEngine(backend, repo, cfg, dry_run=args.dry_run)
-    engine.update(args.revision)
+    engine = MigrantEngine(backend, repo, cfg, dry_run=obj["dry_run"])
+    engine.update(obj["revision"])
 
 
-def cmd_test(args, cfg):
-    cfg = get_db_config(cfg, args.database)
+@cli.command("test")
+@click.option(
+    "-r",
+    "--revision",
+    help="Revision to upgrade to. If not specified, latest revision will be used",
+)
+@click.pass_obj
+def cmd_test(obj):
+    """Test pending migrations by going through update and downgrade"""
+    cfg = get_db_config(obj["cfg"], obj["database"])
     repo = create_repo(cfg)
     backend = create_backend(cfg)
     engine = MigrantEngine(backend, repo, cfg)
-    engine.test(args.revision)
+    engine.test(obj["revision"])
 
 
-def cmd_status(args, cfg):
-    cfg = get_db_config(cfg, args.database)
+@cli.command("status")
+@click.pass_obj
+def cmd_status(obj):
+    """Show the migration status"""
+    cfg = get_db_config(obj["cfg"], obj["database"])
     repo = create_repo(cfg)
     backend = create_backend(cfg)
     engine = MigrantEngine(backend, repo, cfg)
@@ -59,64 +112,6 @@ def cmd_status(args, cfg):
         log.info("Pending actions: %s", actions)
     else:
         log.info("Up-to-date")
-
-
-parser = argparse.ArgumentParser(description="Database Migration Engine")
-parser.add_argument("database", help="Database name")
-
-parser.add_argument(
-    "-c", "--config", default="migrant.ini", help=("Config file to be used")
-)
-
-commands = parser.add_subparsers(dest="cmd")
-commands.required = True
-
-# INIT options
-init_parser = commands.add_parser("init", help="Initialize migration script repository")
-init_parser.set_defaults(cmd=cmd_init)
-# init_parser.add_argument("database", help="Database name")
-
-# NEW options
-new_parser = commands.add_parser(
-    "new", help="Create new migration script, add a script title argument!"
-)
-new_parser.set_defaults(cmd=cmd_new)
-# new_parser.add_argument("database", help="Database name")
-new_parser.add_argument("title", help="Migration script title")
-
-# STATUS options
-status_parser = commands.add_parser("status", help="Show the migration status")
-status_parser.set_defaults(cmd=cmd_status)
-
-# UPGRADE options
-upgrade_parser = commands.add_parser("upgrade", help="Perform upgrade")
-upgrade_parser.set_defaults(cmd=cmd_upgrade)
-upgrade_parser.add_argument(
-    "-n",
-    "--dry-run",
-    action="store_true",
-    help=(
-        "dry run: do not execute scripts, only " "show what is going to be executed."
-    ),
-)
-# upgrade_parser.add_argument("database", help="Database name to upgrade")
-upgrade_parser.add_argument(
-    "-r",
-    "--revision",
-    help=("Revision to upgrade to. If not specified, " "latest revision will be used"),
-)
-
-
-# TEST options
-test_parser = commands.add_parser(
-    "test", help="Test pending migrations by going through update and downgrade"
-)
-test_parser.set_defaults(cmd=cmd_test)
-test_parser.add_argument(
-    "-r",
-    "--revision",
-    help=("Revision to upgrade to. If not specified, " "latest revision will be used"),
-)
 
 
 def load_config(fname):
@@ -137,20 +132,5 @@ def get_db_config(cfg, name):
     return dict(cfg.items(name))
 
 
-def setup_logging(args, cfg):
-    FORMAT = "%(asctime)s %(levelname)s %(module)s - %(message)s"
-    logging.basicConfig(level=logging.INFO, format=FORMAT)
-
-
-def dispatch(args, cfg):
-    args.cmd(args, cfg)
-
-
-def main(args=sys.argv[1:]):
-    args = parser.parse_args(args)
-    try:
-        cfg = load_config(args.config)
-        setup_logging(args, cfg)
-        dispatch(args, cfg)
-    except exceptions.MigrantException as e:
-        sys.exit("fatal: %s" % e)
+if __name__ == "__main__":
+    cli()

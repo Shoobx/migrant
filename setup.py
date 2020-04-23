@@ -38,11 +38,13 @@ setup(
     zip_safe=False,
     extras_require=dict(test=["coverage", "mock"],),
     install_requires=[
+        "click",
+        "click_log",
         "configparser",
         "setuptools",
     ],
     entry_points={
-        "console_scripts": ["migrant = migrant.cli:main",],
+        "console_scripts": ["migrant = migrant.cli:cli",],
         "migrant": ["noop = migrant.backend:NoopBackend"],
     },
 )

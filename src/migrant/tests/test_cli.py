@@ -3,6 +3,7 @@
 # Copyright 2014 by Shoobx, Inc.
 #
 ###############################################################################
+import click.testing
 import os
 import io
 import unittest
@@ -126,10 +127,8 @@ class UpgradeTest(unittest.TestCase):
 
     def test_status_dirty(self):
         self.db0.migrations.extend(["aaaa_first"])
-
-        args = cli.parser.parse_args(["test", "status"])
-        cli.dispatch(args, self.cfg)
-
+        runner = click.testing.CliRunner()
+        result = runner.invoke(cli.cli, ["test", "status"])
         log = self.logstream.getvalue()
         self.assertIn("Pending actions: 2", log)
 
