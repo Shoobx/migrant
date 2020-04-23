@@ -4,10 +4,10 @@
 #
 ###############################################################################
 import os
-import imp
 import logging
 import string
 import hashlib
+from importlib.machinery import SourceFileLoader
 
 try:
     from string import maketrans
@@ -65,7 +65,7 @@ class Script:
     def __init__(self, filename):
         assert filename.endswith(".py")
         self.name = os.path.basename(filename)[:-3]
-        self.module = imp.load_source(self.name, filename)
+        self.module = SourceFileLoader(self.name, filename).load_module()
 
     def up(self, db):
         self._exec("up", db)
