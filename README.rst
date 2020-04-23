@@ -43,3 +43,7 @@ To run tests, use `pytest`::
 To run tests under all supported environments, use `tox`::
 
     tox --skip-missing-interpreters
+
+To check for typing errors, use `mypy`::
+
+    mypy src

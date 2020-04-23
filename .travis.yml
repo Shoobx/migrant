@@ -9,9 +9,10 @@ matrix:
         - python: 3.8
           env: TOXENV=py38
 install:
-  - pip install tox-travis coveralls
+  - pip install tox-travis coveralls mypy
 script:
   - tox
+  - mypy src
 notifications:
     email: false
 after_success:

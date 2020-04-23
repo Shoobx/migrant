@@ -3,25 +3,37 @@
 # Copyright 2014 by Shoobx, Inc.
 #
 ###############################################################################
+from typing import NewType, Dict, Iterable, List, Tuple
 import logging
 import multiprocessing
 import functools
 
+from migrant import exceptions
+from migrant.backend import MigrantBackend
+from migrant.repository import Repository
+
+
 log = logging.getLogger(__name__)
 
-
-from migrant import exceptions
+DB = NewType("DB", object)
+Actions = List[Tuple[str, str]]
 
 
 class MigrantEngine:
-    def __init__(self, backend, repository, config, dry_run=False):
+    def __init__(
+        self,
+        backend: MigrantBackend,
+        repository: Repository,
+        config: Dict[str, str],
+        dry_run: bool = False,
+    ) -> None:
         self.backend = backend
         self.repository = repository
         self.script_ids = ["INITIAL"] + repository.list_script_ids()
         self.dry_run = dry_run
         self.config = config
 
-    def status(self, target_id=None):
+    def status(self, target_id: str = None) -> int:
         """Return number of migration actions to be performed to
         upgrade to target_id"""
         target_id = self.pick_rev_id(target_id)
@@ -34,13 +46,13 @@ class MigrantEngine:
 
         return total_actions
 
-    def _update(self, db, target_id=None):
+    def _update(self, db: DB, target_id: str) -> None:
         log.info("Starting migration for %s" % db)
         actions = self.calc_actions(db, target_id)
         self.execute_actions(db, actions)
         log.info("Migration completed for %s" % db)
 
-    def update(self, target_id=None):
+    def update(self, target_id: str = None) -> None:
         target_id = self.pick_rev_id(target_id)
         conns = self.backend.generate_connections()
         f = functools.partial(self._update, target_id=target_id)
@@ -48,7 +60,7 @@ class MigrantEngine:
         with multiprocessing.Pool() as pool:
             pool.map(f, self.initialized_dbs(conns))
 
-    def test(self, target_id=None):
+    def test(self, target_id: str = None) -> None:
         target_id = self.pick_rev_id(target_id)
         conns = self.backend.generate_test_connections()
 
@@ -67,7 +79,7 @@ class MigrantEngine:
 
             log.info("Testing completed for %s" % db)
 
-    def initialized_dbs(self, conns):
+    def initialized_dbs(self, conns: Iterable[DB]):
         for db in conns:
             log.info("Preparing migrations for %s" % db)
             migrations = self.backend.list_migrations(db)
@@ -78,7 +90,13 @@ class MigrantEngine:
 
             yield db
 
-    def initialize_db(self, db, initial_revid):
+    def initialize_db(self, db: DB, initial_revid: str) -> None:
+        """Iniitialize database that was never migrated before
+
+        Assume it is fully up-to-date.
+        """
+        # We can assuming the current database state is fully up-to-date. This
+        # is the same thing as if all past migrations were executed.
         for sid in self.script_ids:
             if sid != "INITIAL":
                 # Try to resolve into proper script name
@@ -88,7 +106,7 @@ class MigrantEngine:
 
         log.info(f"Initializing migrations for {db}. Assuming database is at {sid}")
 
-    def pick_rev_id(self, rev_id=None):
+    def pick_rev_id(self, rev_id: str = None) -> str:
         if rev_id is None:
             # Pick latest one
             rev_id = self.script_ids[-1]
@@ -98,7 +116,7 @@ class MigrantEngine:
 
         return rev_id
 
-    def calc_actions(self, db, target_revid):
+    def calc_actions(self, db: DB, target_revid: str) -> Actions:
         """Caclulate actions, required to update to revision `target_revid`
         """
         target_revid = canonical_rev_id(target_revid)
@@ -133,14 +151,14 @@ class MigrantEngine:
         ]
         return [("-", rid) for rid in toremove] + [("+", rid) for rid in toadd]
 
-    def revert_actions(self, actions):
+    def revert_actions(self, actions: Actions) -> Actions:
         reverts = [("+" if a == "-" else "-", script) for a, script in actions]
         return list(reversed(reverts))
 
-    def list_backend_migrations(self, db):
+    def list_backend_migrations(self, db: DB) -> List[str]:
         return [canonical_rev_id(revid) for revid in self.backend.list_migrations(db)]
 
-    def execute_actions(self, db, actions, strict=False):
+    def execute_actions(self, db: DB, actions: Actions, strict: bool = False) -> None:
         for action, revid in actions:
             script = self.repository.load_script(revid)
             assert action in ("+", "-")
@@ -171,7 +189,7 @@ class MigrantEngine:
                 end(db, script.name)
 
 
-def canonical_rev_id(migration_name):
+def canonical_rev_id(migration_name: str) -> str:
     if "_" in migration_name:
         return migration_name.split("_", 1)[0]
     else:

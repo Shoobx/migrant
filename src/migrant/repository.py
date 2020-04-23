@@ -9,11 +9,6 @@ import string
 import hashlib
 from importlib.machinery import SourceFileLoader
 
-try:
-    from string import maketrans
-except ImportError:
-    maketrans = str.maketrans
-
 log = logging.getLogger(__name__)
 
 from migrant import exceptions
@@ -114,7 +109,7 @@ class Repository:
         # Make name out of title
         title = title.strip()
         toreplace = string.punctuation + " "
-        trmap = maketrans(toreplace, "_" * len(toreplace))
+        trmap = str.maketrans(toreplace, "_" * len(toreplace))
         name = title.lower().translate(trmap)
         revid = hashlib.sha1((self.directory + title).encode("utf-8")).hexdigest()[:6]
         revname = f"{revid}_{name}"
