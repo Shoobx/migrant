@@ -11,7 +11,7 @@ import shutil
 import textwrap
 import logging
 import pytest
-from configparser import SafeConfigParser
+from configparser import ConfigParser
 import multiprocessing
 
 from migrant import cli, backend, exceptions
@@ -90,8 +90,8 @@ class MockedBackend(backend.MigrantBackend):
 
 class ConfigTest(unittest.TestCase):
     def test_get_db_config(self):
-        cp = SafeConfigParser()
-        cp.readfp(io.StringIO(SAMPLE_CONFIG), "SAMPLE_CONFIG")
+        cp = ConfigParser()
+        cp.read_file(io.StringIO(SAMPLE_CONFIG), "SAMPLE_CONFIG")
         config = cli.get_db_config(cp, "db1")
         self.assertEqual(
             config,
@@ -245,8 +245,8 @@ def sample_config(tmpdir):
         % tmpdir
     )
 
-    cfg = SafeConfigParser()
-    cfg.readfp(io.StringIO(SAMPLE_CONFIG), "SAMPLE_CONFIG")
+    cfg = ConfigParser()
+    cfg.read_file(io.StringIO(SAMPLE_CONFIG), "SAMPLE_CONFIG")
     return cfg
 
 
