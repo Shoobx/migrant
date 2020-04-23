@@ -4,7 +4,11 @@ CHANGELOG
 1.3.2 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Add support for Python-3.8
+
+- Drop support for Python-2.7
+
+- Modernize development environment with pipenv
 
 
 1.3.1 (2019-03-01)
