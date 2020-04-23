@@ -104,7 +104,6 @@ class ConfigTest(unittest.TestCase):
 
 
 class UpgradeTest(unittest.TestCase):
-
     @pytest.fixture(autouse=True)
     def backend_fixture(self, tmpdir, migrant_backend):
         m = multiprocessing.Manager()
@@ -152,7 +151,8 @@ class UpgradeTest(unittest.TestCase):
         cli.dispatch(args, self.cfg)
 
         self.assertEqual(
-            list(self.db0.migrations), ["INITIAL", "aaaa_first", "bbbb_second", "cccc_third"]
+            list(self.db0.migrations),
+            ["INITIAL", "aaaa_first", "bbbb_second", "cccc_third"],
         )
 
     def test_subsequent_emtpy_upgrade(self):
@@ -162,7 +162,8 @@ class UpgradeTest(unittest.TestCase):
         cli.dispatch(args, self.cfg)
 
         self.assertEqual(
-            list(self.db0.migrations), ["INITIAL", "aaaa_first", "bbbb_second", "cccc_third"]
+            list(self.db0.migrations),
+            ["INITIAL", "aaaa_first", "bbbb_second", "cccc_third"],
         )
 
     def test_upgrade_latest(self):
@@ -185,7 +186,9 @@ class UpgradeTest(unittest.TestCase):
         self.assertEqual(dict(self.db0.data), {"value": "b"})
 
     def test_downgrade(self):
-        self.db0.migrations.extend(["INITIAL", "aaaa_first", "bbbb_second", "cccc_third"])
+        self.db0.migrations.extend(
+            ["INITIAL", "aaaa_first", "bbbb_second", "cccc_third"]
+        )
         self.db0.data.update({"hello": "world", "value": "c"})
 
         args = cli.parser.parse_args(["test", "upgrade", "--revision", "aaaa_first"])
@@ -195,7 +198,9 @@ class UpgradeTest(unittest.TestCase):
         self.assertEqual(dict(self.db0.data), {"value": "a"})
 
     def test_downgrade_to_initial(self):
-        self.db0.migrations.extend(["INITIAL", "aaaa_first", "bbbb_second", "cccc_third"])
+        self.db0.migrations.extend(
+            ["INITIAL", "aaaa_first", "bbbb_second", "cccc_third"]
+        )
         self.db0.data.update({"hello": "world", "value": "c"})
 
         args = cli.parser.parse_args(["test", "upgrade", "--revision", "INITIAL"])

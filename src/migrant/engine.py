@@ -3,7 +3,7 @@
 # Copyright 2014 by Shoobx, Inc.
 #
 ###############################################################################
-from typing import NewType, Dict, Iterable, List, Tuple
+from typing import NewType, Dict, Iterable, List, Tuple, Generator
 import logging
 import multiprocessing
 import functools
@@ -26,12 +26,14 @@ class MigrantEngine:
         repository: Repository,
         config: Dict[str, str],
         dry_run: bool = False,
+        processes: int = None,
     ) -> None:
         self.backend = backend
         self.repository = repository
         self.script_ids = ["INITIAL"] + repository.list_script_ids()
         self.dry_run = dry_run
         self.config = config
+        self.processes = processes or multiprocessing.cpu_count()
 
     def status(self, target_id: str = None) -> int:
         """Return number of migration actions to be performed to
@@ -47,18 +49,20 @@ class MigrantEngine:
         return total_actions
 
     def _update(self, db: DB, target_id: str) -> None:
-        log.info("Starting migration for %s" % db)
+        log.info(f"Starting migration for {db}")
         actions = self.calc_actions(db, target_id)
         self.execute_actions(db, actions)
-        log.info("Migration completed for %s" % db)
+        log.info(f"Migration completed for {db}")
 
     def update(self, target_id: str = None) -> None:
         target_id = self.pick_rev_id(target_id)
         conns = self.backend.generate_connections()
         f = functools.partial(self._update, target_id=target_id)
 
-        with multiprocessing.Pool() as pool:
-            pool.map(f, self.initialized_dbs(conns))
+        with multiprocessing.Pool(self.processes) as pool:
+            # call all jobs by materialize result generator
+            for _ in pool.imap_unordered(f, self.initialized_dbs(conns)):
+                pass
 
     def test(self, target_id: str = None) -> None:
         target_id = self.pick_rev_id(target_id)
@@ -79,7 +83,7 @@ class MigrantEngine:
 
             log.info("Testing completed for %s" % db)
 
-    def initialized_dbs(self, conns: Iterable[DB]):
+    def initialized_dbs(self, conns: Iterable[DB]) -> Generator[DB, None, None]:
         for db in conns:
             log.info("Preparing migrations for %s" % db)
             migrations = self.backend.list_migrations(db)
@@ -104,7 +108,7 @@ class MigrantEngine:
                 sid = script.name
             self.backend.push_migration(db, sid)
 
-        log.info(f"Initializing migrations for {db}. Assuming database is at {sid}")
+        log.info(f"Initialized migrations for {db}. Assuming database is at {sid}")
 
     def pick_rev_id(self, rev_id: str = None) -> str:
         if rev_id is None:
