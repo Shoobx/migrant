@@ -3,7 +3,7 @@
 # Copyright 2014 by Shoobx, Inc.
 #
 ###############################################################################
-from typing import NewType, Dict, Iterable, List, Tuple, Generator
+from typing import TypeVar, Dict, List, Tuple, Generic
 import logging
 import multiprocessing
 import functools
@@ -15,18 +15,16 @@ from migrant.repository import Repository
 
 log = logging.getLogger(__name__)
 
-DB = NewType("DB", object)
 Actions = List[Tuple[str, str]]
 
+DBN = TypeVar("DBN")
+DBC = TypeVar("DBC")
 
-# Semaphore to limit consumption of generated database connections
-bottleneck: multiprocessing.Semaphore
 
-
-class MigrantEngine:
+class MigrantEngine(Generic[DBN, DBC]):
     def __init__(
         self,
-        backend: MigrantBackend,
+        backend: MigrantBackend[DBN, DBC],
         repository: Repository,
         config: Dict[str, str],
         dry_run: bool = False,
@@ -46,80 +44,72 @@ class MigrantEngine:
         conns = self.backend.generate_connections()
 
         total_actions = 0
-        for db in self.initialized_dbs(conns):
-            actions = self.calc_actions(db, target_id)
+        for db in conns:
+            cdb = self.initialized_db(db)
+            actions = self.calc_actions(cdb, target_id)
             total_actions += len(actions)
 
         return total_actions
 
-    def _update(self, db: DB, target_id: str) -> None:
-        log.info(f"Starting migration for {db}")
-        actions = self.calc_actions(db, target_id)
-        self.execute_actions(db, actions)
-        log.info(f"Migration completed for {db}")
+    def _update(self, db: DBN, target_id: str) -> None:
+        cdb = self.initialized_db(db)
+        log.info(f"{_pname()}: Starting migration for {cdb}")
+        actions = self.calc_actions(cdb, target_id)
+        try:
+            self.execute_actions(cdb, actions)
+            self.backend.commit(cdb)
+        except:
+            self.backend.abort(cdb)
+            raise
+        finally:
+            self.backend.cleanup(cdb)
+        log.info(f"{_pname()}: Migration completed for {cdb}")
 
     def update(self, target_id: str = None) -> None:
-        global bottleneck
         target_id = self.pick_rev_id(target_id)
         conns = self.backend.generate_connections()
+
         f = functools.partial(self._update, target_id=target_id)
 
-        bottleneck = multiprocessing.Semaphore(self.processes)
-
-        with multiprocessing.Pool(self.processes) as pool:
-            # call all jobs by materialize result generator
-            results = []
-            for conn in self.initialized_dbs(conns):
-                # We want to limit consumption of generated database connection
-                # (conns) so that the generator is not consumed instantly, but
-                # only when free pool workers are available for processing. We
-                # acquire the lock here and release it when job is finished in
-                # self._finish.
-                bottleneck.acquire()
-                res = pool.apply_async(
-                    f, (conn,), callback=self._finished, error_callback=self._finished
-                )
-                results.append(res)
-
-            # Wait for all results to complete
-            for res in results:
-                res.get()
-
-    def _finished(self, res) -> None:
-        global bottleneck
-        bottleneck.release()
+        if self.processes == 1:
+            for conn in conns:
+                f(conn)
+        else:
+            with multiprocessing.Pool(self.processes) as pool:
+                for _ in pool.imap_unordered(f, conns):
+                    pass
 
     def test(self, target_id: str = None) -> None:
         target_id = self.pick_rev_id(target_id)
         conns = self.backend.generate_test_connections()
 
-        for db in self.initialized_dbs(conns):
-            actions = self.calc_actions(db, target_id)
+        for db in conns:
+            cdb = self.initialized_db(db)
+            actions = self.calc_actions(cdb, target_id)
 
             # Perform 2 passes of up/down to make sure database is still
             # upgradeable after being downgraded.
             for testpass in range(1, 3):
-                log.info(f"PASS {testpass}. Testing upgrade for {db}")
-                self.execute_actions(db, actions, strict=True)
+                log.info(f"PASS {testpass}. Testing upgrade for {cdb}")
+                self.execute_actions(cdb, actions, strict=True)
 
-                log.info(f"PASS {testpass}. Testing downgrade for {db}")
+                log.info(f"PASS {testpass}. Testing downgrade for {cdb}")
                 reverted_actions = self.revert_actions(actions)
-                self.execute_actions(db, reverted_actions, strict=True)
+                self.execute_actions(cdb, reverted_actions, strict=True)
 
-            log.info("Testing completed for %s" % db)
+            log.info("Testing completed for %s" % cdb)
 
-    def initialized_dbs(self, conns: Iterable[DB]) -> Generator[DB, None, None]:
-        for db in conns:
-            log.info("Preparing migrations for %s" % db)
-            migrations = self.backend.list_migrations(db)
-            if not migrations:
-                latest_revid = self.pick_rev_id(None)
-                self.initialize_db(db, latest_revid)
-                continue
+    def initialized_db(self, db: DBN) -> DBC:
+        log.info(f"{_pname()}: Preparing migrations for {db}")
+        cdb = self.backend.begin(db)
+        migrations = self.backend.list_migrations(cdb)
+        if not migrations:
+            latest_revid = self.pick_rev_id(None)
+            self.initialize_db(cdb, latest_revid)
 
-            yield db
+        return cdb
 
-    def initialize_db(self, db: DB, initial_revid: str) -> None:
+    def initialize_db(self, db: DBC, initial_revid: str):
         """Iniitialize database that was never migrated before
 
         Assume it is fully up-to-date.
@@ -133,7 +123,9 @@ class MigrantEngine:
                 sid = script.name
             self.backend.push_migration(db, sid)
 
-        log.info(f"Initialized migrations for {db}. Assuming database is at {sid}")
+        log.info(
+            f"{_pname()}: Initialized migrations for {db}. Assuming database is at {sid}"
+        )
 
     def pick_rev_id(self, rev_id: str = None) -> str:
         if rev_id is None:
@@ -145,7 +137,7 @@ class MigrantEngine:
 
         return rev_id
 
-    def calc_actions(self, db: DB, target_revid: str) -> Actions:
+    def calc_actions(self, db: DBC, target_revid: str) -> Actions:
         """Caclulate actions, required to update to revision `target_revid`
         """
         target_revid = canonical_rev_id(target_revid)
@@ -184,10 +176,10 @@ class MigrantEngine:
         reverts = [("+" if a == "-" else "-", script) for a, script in actions]
         return list(reversed(reverts))
 
-    def list_backend_migrations(self, db: DB) -> List[str]:
+    def list_backend_migrations(self, db: DBC) -> List[str]:
         return [canonical_rev_id(revid) for revid in self.backend.list_migrations(db)]
 
-    def execute_actions(self, db: DB, actions: Actions, strict: bool = False) -> None:
+    def execute_actions(self, db: DBC, actions: Actions, strict: bool = False) -> None:
         for action, revid in actions:
             script = self.repository.load_script(revid)
             assert action in ("+", "-")
@@ -216,6 +208,10 @@ class MigrantEngine:
                 if strict:
                     after(db)
                 end(db, script.name)
+
+
+def _pname() -> str:
+    return multiprocessing.current_process().name
 
 
 def canonical_rev_id(migration_name: str) -> str:

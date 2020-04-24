@@ -60,6 +60,9 @@ class MockedBackend(backend.MigrantBackend):
         self.new_scripts = manager.list() if manager else []
         self.inits = 0
 
+    def begin(self, db):
+        return db
+
     def list_migrations(self, db):
         return list(db.migrations)
 

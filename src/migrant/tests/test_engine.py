@@ -157,6 +157,7 @@ def _make_engine(migrations, scripts, log=None):
     log = log if log is not None else []
     backend = mock.Mock()
     backend.list_migrations.return_value = migrations
+    backend.begin = lambda db: db
 
     backend.generate_test_connections.return_value = ["db1", "db2"]
 
@@ -169,13 +170,16 @@ def _make_engine(migrations, scripts, log=None):
     return engine
 
 
-class MultiDbBackend(MigrantBackend):
+class MultiDbBackend(MigrantBackend[str, str]):
     def __init__(self, dbs: List[str], logfname: str) -> None:
         self._applied = {}
         self.dbs = dbs
         self.logfname = logfname
         for db in dbs:
             self._applied[db] = ["INITIAL"]
+
+    def begin(self, db: str) -> str:
+        return db
 
     def list_migrations(self, db: str) -> List[str]:
         return self._applied.get(db, [])
