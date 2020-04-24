@@ -19,6 +19,10 @@ DB = NewType("DB", object)
 Actions = List[Tuple[str, str]]
 
 
+# Semaphore to limit consumption of generated database connections
+bottleneck: multiprocessing.Semaphore
+
+
 class MigrantEngine:
     def __init__(
         self,
@@ -55,14 +59,35 @@ class MigrantEngine:
         log.info(f"Migration completed for {db}")
 
     def update(self, target_id: str = None) -> None:
+        global bottleneck
         target_id = self.pick_rev_id(target_id)
         conns = self.backend.generate_connections()
         f = functools.partial(self._update, target_id=target_id)
 
+        bottleneck = multiprocessing.Semaphore(self.processes)
+
         with multiprocessing.Pool(self.processes) as pool:
             # call all jobs by materialize result generator
-            for _ in pool.imap_unordered(f, self.initialized_dbs(conns)):
-                pass
+            results = []
+            for conn in self.initialized_dbs(conns):
+                # We want to limit consumption of generated database connection
+                # (conns) so that the generator is not consumed instantly, but
+                # only when free pool workers are available for processing. We
+                # acquire the lock here and release it when job is finished in
+                # self._finish.
+                bottleneck.acquire()
+                res = pool.apply_async(
+                    f, (conn,), callback=self._finished, error_callback=self._finished
+                )
+                results.append(res)
+
+            # Wait for all results to complete
+            for res in results:
+                res.get()
+
+    def _finished(self, res) -> None:
+        global bottleneck
+        bottleneck.release()
 
     def test(self, target_id: str = None) -> None:
         target_id = self.pick_rev_id(target_id)

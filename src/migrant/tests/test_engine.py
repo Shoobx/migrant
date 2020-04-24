@@ -170,9 +170,10 @@ def _make_engine(migrations, scripts, log=None):
 
 
 class MultiDbBackend(MigrantBackend):
-    def __init__(self, dbs: List[str]) -> None:
+    def __init__(self, dbs: List[str], logfname: str) -> None:
         self._applied = {}
         self.dbs = dbs
+        self.logfname = logfname
         for db in dbs:
             self._applied[db] = ["INITIAL"]
 
@@ -191,6 +192,9 @@ class MultiDbBackend(MigrantBackend):
         """Generate connections to process
         """
         for db in self.dbs:
+            # with open(self.logfname, "a") as f:
+            #     f.write(f"Opening database: {db}\n")
+            #     print(f"Opening database: {db}")
             yield db
 
 
@@ -226,7 +230,8 @@ def test_concurrent_upgrade_multiprocess(tmp_path) -> None:
     # multiprocessing environment, we cannot share memory data structure, like
     # list, and let scripts write log to it. Instead, write to a share file.
     logfname = os.path.join(tmp_path, "migration.log")
-    backend = MultiDbBackend(["db1", "db2", "db3"])
+    # backend = MultiDbBackend(["db1"] + ["db2", "db3"]*10, logfname)
+    backend = MultiDbBackend(["db1", "db2", "db3"], logfname)
     repository = MultiDbRepo({"db1": 0.1, "db2": 0.01, "db3": 0.05}, logfname)
     engine = MigrantEngine(backend, repository, {}, processes=2)
 
@@ -252,7 +257,7 @@ def test_concurrent_upgrade_singleprocess(tmp_path) -> None:
     # multiprocessing environment, we cannot share memory data structure, like
     # list, and let scripts write log to it. Instead, write to a share file.
     logfname = os.path.join(tmp_path, "migration.log")
-    backend = MultiDbBackend(["db1", "db2", "db3"])
+    backend = MultiDbBackend(["db1", "db2", "db3"], logfname)
     repository = MultiDbRepo({"db1": 0.1, "db2": 0.01, "db3": 0.05}, logfname)
     engine = MigrantEngine(backend, repository, {}, processes=1)
 
