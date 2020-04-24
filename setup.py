@@ -37,6 +37,7 @@ setup(
     include_package_data=True,
     zip_safe=False,
     extras_require=dict(test=["coverage", "mock"],),
+    package_data = {'migrant': ['py.typed']},
     install_requires=[
         "configparser ; python_version<'3.0'",  # Py3 configparser backport.
         "setuptools",

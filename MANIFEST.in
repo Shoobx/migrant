@@ -2,3 +2,4 @@ include *.rst
 include buildout.cfg
 include versions.cfg
 recursive-include src *.py
+recursive-include src py.typed
