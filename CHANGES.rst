@@ -4,6 +4,11 @@ CHANGELOG
 1.3.2 (unreleased)
 ------------------
 
+- API change: to support parallel processing Backend class grew connection
+  management methods, that needs to be implemented in plugins.
+
+- Type annotations added
+
 - Support migration of multiple databases in parallel (see `--parallel`
   command line argument for  command)
 
