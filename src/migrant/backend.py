@@ -3,7 +3,7 @@
 # Copyright 2014 by Shoobx, Inc.
 #
 ###############################################################################
-
+from typing import List, Iterable, Generic, TypeVar
 import logging
 import pkg_resources
 
@@ -12,24 +12,22 @@ from migrant import exceptions
 log = logging.getLogger(__name__)
 
 
-class MigrantBackend:
+# Database name type
+DBN = TypeVar("DBN")
+
+# Database connection type
+DBC = TypeVar("DBC")
+
+
+class MigrantBackend(Generic[DBN, DBC]):
     """Base interface for backend implementations"""
 
-    def list_migrations(self, db):
-        raise NotImplementedError  # pragma: no cover
-
-    def push_migration(self, db, migration):
-        raise NotImplementedError  # pragma: no cover
-
-    def pop_migration(self, db, migration):
-        raise NotImplementedError  # pragma: no cover
-
-    def generate_connections(self):
+    def generate_connections(self) -> Iterable[DBN]:
         """Generate connections to process
         """
         raise NotImplementedError  # pragma: no cover
 
-    def generate_test_connections(self):
+    def generate_test_connections(self) -> Iterable[DBN]:
         """Generate connections for migration tests
 
         The same interface as `generate_connections`, however this should not
@@ -40,32 +38,70 @@ class MigrantBackend:
         """
         return []  # pargma: no cover
 
-    def on_new_script(self, rev_name):
+    def begin(self, db: DBN) -> DBC:
+        """Begin the migration
+
+        This gives the opportunity to perform actual connection to the database
+        before any migration is run.
+        """
+        raise NotImplementedError  # pragma: no cover
+
+    def commit(self, db: DBC) -> None:
+        """Called on successful completion of a migration
+
+        This is an opportunity to commit work and close the connection.
+        """
+        pass
+
+    def abort(self, db: DBC) -> None:
+        """Called when migration have failed"""
+        pass
+
+    def cleanup(self, db: DBC) -> None:
+        """Complete the migration
+
+        Called when all work on database is done.
+        """
+        pass
+
+    def list_migrations(self, db: DBC) -> List[str]:
+        raise NotImplementedError  # pragma: no cover
+
+    def push_migration(self, db: DBC, migration: str) -> None:
+        raise NotImplementedError  # pragma: no cover
+
+    def pop_migration(self, db: DBC, migration: str) -> None:
+        raise NotImplementedError  # pragma: no cover
+
+    def on_new_script(self, rev_name: str) -> None:
         """Called when new script is created
         """
         pass  # pragma: no cover
 
-    def on_repo_init(self):
+    def on_repo_init(self) -> None:
         """Called when new script repository is initialized
         """
         pass  # pragma: no cover
 
 
-class NoopBackend(MigrantBackend):
+class NoopBackend(MigrantBackend[str, str]):
     def __init__(self, cfg):
         self.cfg = cfg
 
-    def list_migrations(self, db):
+    def list_migrations(self, db: str) -> List[str]:
         return ["INITIAL"]
 
-    def push_migration(self, db, migration):
+    def push_migration(self, db: str, migration: str) -> None:
         log.info("NOOP: pushing migration %s" % migration)
 
-    def pop_migration(self, db, migration):
+    def pop_migration(self, db: str, migration: str) -> None:
         log.info("NOOP: popping migration %s" % migration)
 
     def generate_connections(self):
         yield "NOOP"
+
+    def begin(self, db: str) -> str:
+        return db
 
 
 def create_backend(cfg):

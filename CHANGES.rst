@@ -4,6 +4,9 @@ CHANGELOG
 1.3.2 (unreleased)
 ------------------
 
+- Support migration of multiple databases in parallel (see `--parallel`
+  command line argument for  command)
+
 - Add support for Python-3.8
 
 - Drop support for Python-2.7

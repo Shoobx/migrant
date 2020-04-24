@@ -3,6 +3,7 @@
 # Copyright 2014 by Shoobx, Inc.
 #
 ###############################################################################
+from typing import Dict
 import os
 import sys
 import argparse
@@ -33,11 +34,13 @@ def cmd_new(args, cfg):
     backend.on_new_script(revname)
 
 
-def cmd_upgrade(args, cfg):
+def cmd_upgrade(args, cfg: Dict[str, str]) -> None:
     cfg = get_db_config(cfg, args.database)
     repo = create_repo(cfg)
     backend = create_backend(cfg)
-    engine = MigrantEngine(backend, repo, cfg, dry_run=args.dry_run)
+    engine = MigrantEngine(
+        backend, repo, cfg, dry_run=args.dry_run, processes=args.parallel,
+    )
     engine.update(args.revision)
 
 
@@ -104,6 +107,19 @@ upgrade_parser.add_argument(
     "-r",
     "--revision",
     help=("Revision to upgrade to. If not specified, " "latest revision will be used"),
+)
+
+upgrade_parser.add_argument(
+    "-j",
+    "--parallel",
+    nargs="?",
+    type=int,
+    default=1,
+    help=(
+        "Migrate databases in parallel. If backend provides multiple databases, "
+        "migration for each of them will be performed in parallel. Concurrency "
+        "level is set by this argument."
+    ),
 )
 
 
