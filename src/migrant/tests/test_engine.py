@@ -10,6 +10,7 @@ import time
 
 import mock
 
+from migrant import exceptions
 from migrant.engine import MigrantEngine
 from migrant.backend import MigrantBackend
 from migrant.repository import Script, Repository
@@ -175,10 +176,13 @@ class MultiDbBackend(MigrantBackend[str, str]):
         self._applied = {}
         self.dbs = dbs
         self.logfname = logfname
+        self.unavailable_dbs: List[str] = []
         for db in dbs:
             self._applied[db] = ["INITIAL"]
 
     def begin(self, db: str) -> str:
+        if db in self.unavailable_dbs:
+            raise exceptions.DatabaseUnavailable(db)
         return db
 
     def list_migrations(self, db: str) -> List[str]:
@@ -196,9 +200,6 @@ class MultiDbBackend(MigrantBackend[str, str]):
         """Generate connections to process
         """
         for db in self.dbs:
-            # with open(self.logfname, "a") as f:
-            #     f.write(f"Opening database: {db}\n")
-            #     print(f"Opening database: {db}")
             yield db
 
 
@@ -277,4 +278,26 @@ def test_concurrent_upgrade_singleprocess(tmp_path) -> None:
         "db1: Upgraded to script1 (0.1s)",
         "db2: Upgraded to script1 (0.01s)",
         "db3: Upgraded to script1 (0.05s)",
+    ]
+
+
+def test_skip_unavailable(tmp_path) -> None:
+    # GIVEN
+    logfname = os.path.join(tmp_path, "migration.log")
+
+    backend = MultiDbBackend(["db1", "db2", "db3"], logfname)
+    backend.unavailable_dbs = ["db1", "db3"]
+    repository = MultiDbRepo({"db1": 0.1, "db2": 0.01, "db3": 0.05}, logfname)
+    engine = MigrantEngine(backend, repository, {}, processes=1)
+
+    # WHEN
+    engine.update()
+
+    # THEN
+    with open(logfname, "r") as f:
+        log = f.read().strip().split("\n")
+
+    # First task executed first despite being the longest
+    assert log == [
+        "db2: Upgraded to script1 (0.01s)",
     ]

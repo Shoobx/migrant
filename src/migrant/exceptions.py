@@ -36,3 +36,7 @@ class BackendNotRegistered(MigrantException):
 class BackendNameConflict(MigrantException):
     def __str__(self):
         return "Backend name conflict in these pacakges: %s" % self.message
+
+
+class DatabaseUnavailable(MigrantException):
+    """Raised by backend when database is not available for processing"""

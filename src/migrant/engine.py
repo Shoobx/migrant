@@ -45,14 +45,20 @@ class MigrantEngine(Generic[DBN, DBC]):
 
         total_actions = 0
         for db in conns:
-            cdb = self.initialized_db(db)
+            try:
+                cdb = self.initialized_db(db)
+            except exceptions.DatabaseUnavailable:
+                continue
             actions = self.calc_actions(cdb, target_id)
             total_actions += len(actions)
 
         return total_actions
 
     def _update(self, db: DBN, target_id: str) -> None:
-        cdb = self.initialized_db(db)
+        try:
+            cdb = self.initialized_db(db)
+        except exceptions.DatabaseUnavailable:
+            return
         log.info(f"{_pname()}: Starting migration for {cdb}")
         actions = self.calc_actions(cdb, target_id)
         try:
@@ -84,7 +90,10 @@ class MigrantEngine(Generic[DBN, DBC]):
         conns = self.backend.generate_test_connections()
 
         for db in conns:
-            cdb = self.initialized_db(db)
+            try:
+                cdb = self.initialized_db(db)
+            except exceptions.DatabaseUnavailable:
+                continue
             actions = self.calc_actions(cdb, target_id)
 
             # Perform 2 passes of up/down to make sure database is still
@@ -101,7 +110,12 @@ class MigrantEngine(Generic[DBN, DBC]):
 
     def initialized_db(self, db: DBN) -> DBC:
         log.info(f"{_pname()}: Preparing migrations for {db}")
-        cdb = self.backend.begin(db)
+        try:
+            cdb = self.backend.begin(db)
+        except exceptions.DatabaseUnavailable:
+            log.warning(f"{_pname()}: Starting migration for {db}")
+            raise
+
         migrations = self.backend.list_migrations(cdb)
         if not migrations:
             latest_revid = self.pick_rev_id(None)

@@ -4,6 +4,8 @@ CHANGELOG
 1.3.2 (unreleased)
 ------------------
 
+- Ability to skip database from migration, when it not available.
+
 - API change: to support parallel processing Backend class grew connection
   management methods, that needs to be implemented in plugins.
 

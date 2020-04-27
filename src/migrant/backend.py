@@ -43,6 +43,9 @@ class MigrantBackend(Generic[DBN, DBC]):
 
         This gives the opportunity to perform actual connection to the database
         before any migration is run.
+
+        Can raise DatabaseUnavailable exception. In this case, migration will
+        be skipped for this database.
         """
         raise NotImplementedError  # pragma: no cover
 
