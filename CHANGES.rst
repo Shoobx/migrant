@@ -1,7 +1,7 @@
 CHANGELOG
 =========
 
-1.3.2 (unreleased)
+1.4.0 (2020-04-28)
 ------------------
 
 - Ability to skip database from migration, when it not available.
