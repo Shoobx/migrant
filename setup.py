@@ -19,7 +19,7 @@ setup(
     description="Database Migration Engine",
     long_description=read_file("README.rst") + "\n\n" + read_file("CHANGES.rst"),
     keywords="migration version database",
-    license="Proprietary",
+    license="MIT",
     classifiers=[
         "Development Status :: 2 - Pre-Alpha",
         "Intended Audience :: Developers",
