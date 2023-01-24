@@ -4,7 +4,7 @@ CHANGELOG
 1.4.1 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- License under MIT
 
 
 1.4.0 (2020-04-28)
