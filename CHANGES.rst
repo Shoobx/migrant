@@ -1,7 +1,7 @@
 CHANGELOG
 =========
 
-1.4.1 (unreleased)
+1.5.0 (2023-01-24)
 ------------------
 
 - License under MIT
