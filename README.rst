@@ -2,8 +2,8 @@
 Migrant
 =======
 
-.. image:: https://travis-ci.org/Shoobx/migrant.png?branch=master
-   :target: https://travis-ci.org/Shoobx/migrant
+.. image:: https://github.com/Shoobx/migrant/actions/workflows/test.yml/badge.svg
+   :target: https://github.com/Shoobx/migrant/actions
 
 .. image:: https://coveralls.io/repos/github/Shoobx/migrant/badge.svg?branch=master
    :target: https://coveralls.io/github/Shoobx/migrant?branch=master

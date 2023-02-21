@@ -4,7 +4,7 @@ CHANGELOG
 1.5.1 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Moving CI to github actions
 
 
 1.5.0 (2023-01-24)
