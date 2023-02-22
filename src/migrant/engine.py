@@ -3,7 +3,7 @@
 # Copyright 2014 by Shoobx, Inc.
 #
 ###############################################################################
-from typing import TypeVar, Dict, List, Tuple, Generic
+from typing import Optional, TypeVar, Dict, List, Tuple, Generic
 import logging
 import multiprocessing
 import functools
@@ -28,7 +28,7 @@ class MigrantEngine(Generic[DBN, DBC]):
         repository: Repository,
         config: Dict[str, str],
         dry_run: bool = False,
-        processes: int = None,
+        processes: Optional[int] = None,
     ) -> None:
         self.backend = backend
         self.repository = repository
@@ -37,7 +37,7 @@ class MigrantEngine(Generic[DBN, DBC]):
         self.config = config
         self.processes = processes or multiprocessing.cpu_count()
 
-    def status(self, target_id: str = None) -> int:
+    def status(self, target_id: Optional[str] = None) -> int:
         """Return number of migration actions to be performed to
         upgrade to target_id"""
         target_id = self.pick_rev_id(target_id)
@@ -71,7 +71,7 @@ class MigrantEngine(Generic[DBN, DBC]):
             self.backend.cleanup(cdb)
         log.info(f"{_pname()}: Migration completed for {cdb}")
 
-    def update(self, target_id: str = None) -> None:
+    def update(self, target_id: Optional[str] = None) -> None:
         target_id = self.pick_rev_id(target_id)
         conns = self.backend.generate_connections()
 
@@ -85,7 +85,7 @@ class MigrantEngine(Generic[DBN, DBC]):
                 for _ in pool.imap_unordered(f, conns):
                     pass
 
-    def test(self, target_id: str = None) -> None:
+    def test(self, target_id: Optional[str] = None) -> None:
         target_id = self.pick_rev_id(target_id)
         conns = self.backend.generate_test_connections()
 
@@ -141,7 +141,7 @@ class MigrantEngine(Generic[DBN, DBC]):
             f"{_pname()}: Initialized migrations for {db}. Assuming database is at {sid}"
         )
 
-    def pick_rev_id(self, rev_id: str = None) -> str:
+    def pick_rev_id(self, rev_id: Optional[str] = None) -> str:
         if rev_id is None:
             # Pick latest one
             rev_id = self.script_ids[-1]

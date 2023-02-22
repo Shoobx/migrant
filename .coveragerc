@@ -1,2 +1,7 @@
 [run]
 omit = */tests/*,*/conftest.py
+relative_files = True
+
+[report]
+show_missing = true
+precision = 2
