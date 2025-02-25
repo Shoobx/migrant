@@ -9,8 +9,7 @@ import logging
 import pytest
 import mock
 
-
-@pytest.yield_fixture
+@pytest.fixture
 def migrant_backend():
     """Fixture to set up backend
     """
