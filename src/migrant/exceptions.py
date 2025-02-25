@@ -15,27 +15,27 @@ class ConfigurationError(MigrantException):
 
 class ScriptNotFoundError(MigrantException):
     def __str__(self):
-        return "Script not found: %s" % self.message
+        return "Script not found: %s" % self.args
 
 
 class ScriptAlreadyExists(MigrantException):
     def __str__(self):
-        return "Script already exists: %s" % self.message
+        return "Script already exists: %s" % self.args
 
 
 class RepositoryNotFound(MigrantException):
     def __str__(self):
-        return "Repository not found: %s" % self.message
+        return "Repository not found: %s" % self.args
 
 
 class BackendNotRegistered(MigrantException):
     def __str__(self):
-        return "Backend not registered: %s" % self.message
+        return "Backend not registered: %s" % self.args
 
 
 class BackendNameConflict(MigrantException):
     def __str__(self):
-        return "Backend name conflict in these pacakges: %s" % self.message
+        return "Backend name conflict in these pacakges: %s" % self.args
 
 
 class DatabaseUnavailable(MigrantException):
