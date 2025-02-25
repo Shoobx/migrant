@@ -5,7 +5,7 @@
 ###############################################################################
 from typing import List, Iterable, Generic, TypeVar
 import logging
-import pkg_resources
+import importlib.metadata
 
 from migrant import exceptions
 
@@ -115,10 +115,10 @@ def create_backend(cfg):
 
 
 def get_backend(name):
-    backends = list(pkg_resources.iter_entry_points("migrant", name))
+    backends = importlib.metadata.entry_points(group="migrant").select(name=name)
     if not backends:
         raise exceptions.BackendNotRegistered(name)
     if len(backends) > 1:
         raise exceptions.BackendNameConflict(backends)
-    pcls = backends[0].load()
+    pcls = backends[name].load()
     return pcls
