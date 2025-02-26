@@ -5,6 +5,8 @@ CHANGELOG
 ------------------
 
 - Moving CI to github actions
+- Modernize project
+- Remove use of deprecated APIs
 
 
 1.5.0 (2023-01-24)
