@@ -32,7 +32,7 @@ dependencies = ["setuptools"]
 test = ["coverage", "mock"]
 
 [project.urls]
-"Changes" = "CHANGES.rst"
+Homepage = "https://github.com/Shoobx/migrant/"
 
 [tool.setuptools.packages.find]
 where = ["src"]
