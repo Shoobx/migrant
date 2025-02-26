@@ -8,7 +8,7 @@ import os
 import logging
 import string
 import hashlib
-from importlib.machinery import SourceFileLoader
+import importlib.util
 
 log = logging.getLogger(__name__)
 
@@ -61,7 +61,13 @@ class Script:
     def __init__(self, filename):
         assert filename.endswith(".py")
         self.name = os.path.basename(filename)[:-3]
-        self.module = SourceFileLoader(self.name, filename).load_module()
+        self.module = self._load_module_from_file(self.name, filename)
+
+    def _load_module_from_file(self, name, path):
+        spec = importlib.util.spec_from_file_location(name, path)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        return module
 
     def up(self, db):
         self._exec("up", db)

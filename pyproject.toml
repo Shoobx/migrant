@@ -1,0 +1,47 @@
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "migrant"
+version = "1.5.1.dev0"
+description = "Database Migration Engine"
+readme = "README.rst"
+keywords = ["migration", "version", "database"]
+license = {text = "MIT"}
+authors = [
+    {name = "Shoobx, Inc.", email = "dev@shoobx.com"}
+]
+classifiers = [
+    "Development Status :: 2 - Pre-Alpha",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: Implementation :: CPython",
+    "Natural Language :: English",
+    "Operating System :: OS Independent"
+]
+dependencies = ["setuptools"]
+
+[project.optional-dependencies]
+test = ["coverage", "mock"]
+
+[project.urls]
+"Changes" = "CHANGES.rst"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+"migrant" = ["py.typed"]
+
+[project.scripts]
+migrant = "migrant.cli:main"
+
+[project.entry-points]
+migrant = { noop = "migrant.backend:NoopBackend" }
